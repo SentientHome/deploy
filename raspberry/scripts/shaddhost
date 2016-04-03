@@ -13,13 +13,13 @@ Add a newly created host to the SentientHome Master
 OPTIONS:
   --help|-h         Show this message
   --newpassword|-n  Set new root password for host
-  --oldpassword|-o  Existing root for new host default=hypriot
+  --oldpassword|-o  Existing root password for new host default=hypriot
 
 EOF
   exit 1
 }
 
-OLD_PASSWD = "hypriot"
+OLD_PASSWD="hypriot"
 
 # translate long options to short
 for arg
@@ -57,9 +57,6 @@ if [ -z "${HOST}" ]; then
   usage
 fi
 
-# if [ "$1" == "--help" ]; then
-#   usage
-# fi
 
 DOAMIN="${HOST##*.}"
 HOSTNAME="${HOST%.*}"
@@ -78,12 +75,12 @@ ssh-keygen -R $HOST_IP
 
 VAR=$(expect -c "expect '' \
   {eval spawn \
-  ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@$HOST_IP; \
+  ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@${HOST_IP}; \
   interact -o -nobuffer -re .*assword.* return; \
-  send "$OLD_PASSWD\r"; send -- "\r"; \
+  send "${OLD_PASSWD}\r"; send -- "\r"; \
   expect eof;} ")
 
-echo "$VAR"
+echo $VAR
 
 # ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@$HOST_IP
 

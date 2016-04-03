@@ -82,15 +82,15 @@ ssh-keygen -R $HOST_NAME
 echo "Copying public key to host $HOST_IP ..."
 
 if [ $DEBUG -eq 1 ]; then
-  OPT_OUTPUT="1>/dev/null"
+  OPT_OUTPUT="&1"
 else
-  OPT_OUTPUT=""
+  OPT_OUTPUT="/dev/null"
 fi
 
 echo "Debug: $DEBUG"
 echo "Opt Out: $OPT_OUTPUT"
 
-expect $OPT_OUTPUT << EOF
+expect 1>$OPT_OUTPUT << EOF
   spawn ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@${HOST_IP}
 
   expect {

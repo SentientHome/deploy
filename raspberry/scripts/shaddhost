@@ -122,8 +122,8 @@ echo "..."
 if [ -n $NEW_PASSWD ]; then
   echo "Changeing password for root@${HOST_IP} ..."
 ssh root@$HOST_IP passwd << EOF
-${NEW_PASSWD}
-${NEW_PASSWD}
+$NEW_PASSWD
+$NEW_PASSWD
 EOF
 fi
 

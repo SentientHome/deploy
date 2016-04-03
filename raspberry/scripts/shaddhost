@@ -55,6 +55,13 @@ while getopts "hdn:o:" opt; do
 done
 shift $((OPTIND -1))
 
+if [ $DEBUG -eq 1 ]; then
+  set -x
+  OPT_OUTPUT="/dev/stdout"
+else
+  OPT_OUTPUT="/dev/null"
+fi
+
 HOST=$1
 
 if [ -z "$HOST" ]; then
@@ -80,12 +87,6 @@ ssh-keygen -R $HOST_IP
 ssh-keygen -R $HOST_NAME
 
 echo "Copying public key to host $HOST_IP ..."
-
-if [ $DEBUG -eq 1 ]; then
-  OPT_OUTPUT="/dev/stdout"
-else
-  OPT_OUTPUT="/dev/null"
-fi
 
 expect 1>$OPT_OUTPUT << EOF
   spawn ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@${HOST_IP}

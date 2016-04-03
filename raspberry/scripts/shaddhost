@@ -19,6 +19,13 @@ EOF
   exit 1
 }
 
+log()
+{
+  me=`basename "$0"`
+
+  echo $me `date +%Y%m%d%H%M%S` $1
+}
+
 # Default settings
 OLD_PASSWD="hypriot"
 DEBUG=0
@@ -65,7 +72,7 @@ fi
 HOST=$1
 
 if [ -z "$HOST" ]; then
-  echo "No host specified.\n"
+  log "No host specified.\n"
   usage
 fi
 
@@ -76,17 +83,17 @@ function getip() { (traceroute $1 2>&1 | head -n 1 | cut -d\( -f 2 | cut -d\) -f
 HOST_IP=$(getip ${HOST_NAME}.local)
 
 if [ $? -eq 0 ]; then
-  echo "$1 found at $HOST_IP."
+  log "$1 found at $HOST_IP."
 else
-  echo "$1 could not be located in network."
+  log "$1 could not be located in network."
   exit 2
 fi
 
-echo "Removing any existing host keys for $HOST_NAME and $HOST_IP ..."
+log "Removing any existing host keys for $HOST_NAME and $HOST_IP ..."
 ssh-keygen -R $HOST_IP
 ssh-keygen -R $HOST_NAME
 
-echo "Copying public key to host $HOST_IP ..."
+log "Copying public key to host $HOST_IP ..."
 
 expect 1>$OPT_OUTPUT << EOF
   spawn ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@${HOST_IP}
@@ -111,25 +118,25 @@ expect 1>$OPT_OUTPUT << EOF
 EOF
 
 if [ $? -eq 3 ]; then
-  echo "👎  Incorrect host password."
+  log "👎  Incorrect host password."
   exit 3
 elif [ $? -eq 2 ]; then
-  echo "👎  Key copy timed out."
+  log "👎  Key copy timed out."
   exit 2
 fi
 
 echo "..."
 
 if [ -n $NEW_PASSWD ]; then
-  echo "Changeing password for root@${HOST_IP} ..."
-ssh root@$HOST_IP passwd 1>$OPT_OUTPUT << EOF
+  log "Changeing password for root@${HOST_IP} ..."
+ssh root@$HOST_IP passwd &>$OPT_OUTPUT << EOF
 $NEW_PASSWD
 $NEW_PASSWD
 EOF
 fi
 
 if [ $? -eq 0 ]; then
-  echo "🍺  Finished."
+  log "🍺  Finished."
 else
-  echo "👎  Someting went wrong."
+  log "👎  Someting went wrong."
 fi

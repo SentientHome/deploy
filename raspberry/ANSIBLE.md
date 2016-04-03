@@ -34,7 +34,7 @@ choosing.
 
     sudo pip install markupsafe
     sudo pip install ansible
-    sudo pip3 install pubkey
+    # sudo pip3 install pubkey
     ```
 
     Note: We are also installing [pubkey](https://github.com/fxstein/pubkey)

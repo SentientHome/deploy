@@ -27,6 +27,24 @@ from a Mac.
     Follow the instructions of the flash utility and within a few minutes the
     raw boot image is ready.
 
+    Depending on your setup you migth want to prepare addirional hosts for the
+    entire SentientHome cluster:
+
+    ```bash
+    dns1 # Main DNS and DHCP server for the home
+    dns2 # Optional redundant DNS and DHCP server
+
+    pi-01-01 # Hosts for Docker Swarm cluster without external storage
+    pi-01-02
+    ...
+    pi-01-nn
+
+    pi-50-01 # Hosts for Docker Swarm cluster WITH external storage (e.g. SSD)
+    pi-50-02
+    ...
+    pi-50-nn
+    ```
+
 2.  Install the SD Card into a Raspberry PI of your choice and boot it up. For
     now we assume you have an existing DHCP server on your local network that
     will provide this new PI with a temporary IP address.

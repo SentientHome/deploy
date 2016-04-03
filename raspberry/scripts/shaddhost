@@ -77,7 +77,7 @@ ssh-keygen -R $HOST_IP
 ssh-keygen -R $HOST_NAME
 
 echo "Copying public key to host $HOST_IP ..."
-expect << EOF
+expect 1>/dev/null << EOF
   spawn ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@${HOST_IP}
 
   expect {
@@ -97,7 +97,7 @@ expect << EOF
     }
     eof
   }
-EOF 1>/dev/null
+EOF
 
 if [ $? -ne 0 ]; then
   echo "👎  Something went wrong."

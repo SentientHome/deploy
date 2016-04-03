@@ -19,6 +19,7 @@ EOF
   exit 1
 }
 
+# Default settings
 OLD_PASSWD="hypriot"
 DEBUG=0
 
@@ -60,7 +61,6 @@ if [ -z "$HOST" ]; then
   echo "No host specified.\n"
   usage
 fi
-
 
 HOST_DOMAIN="${HOST##*.}"
 HOST_NAME="${HOST%.*}"
@@ -111,9 +111,9 @@ EOF
 
 if [ $? -eq 3 ]; then
   echo "👎  Incorrect host password."
-  exit 2
-elif [ $? -ne 0 ]; then
-  echo "👎  Something went wrong."
+  exit 3
+elif [ $? -eq 2 ]; then
+  echo "👎  Key copy timed out."
   exit 2
 fi
 

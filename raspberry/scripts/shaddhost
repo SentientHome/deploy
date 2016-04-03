@@ -94,7 +94,6 @@ expect << EOF
           exit 3
         }
       }
-      send -- "\r"
     }
     eof
   }

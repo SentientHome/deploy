@@ -37,14 +37,14 @@ done
 # reset the translated args
 eval set -- "$args"
 # now we can process with getopt
-while getopts ":h:n:o:" opt; do
+while getopts ":hn:o:" opt; do
   case $opt in
     h)  usage ;;
     p)  NEW_PASSWD=$OPTARG ;;
     o)  OLD_PASSWD=$OPTARG ;;
     \?) usage ;;
     :)
-      echo "option -$OPTARG requires an argument"
+      echo "option -$OPTARG requires an argument\r"
       usage
     ;;
   esac

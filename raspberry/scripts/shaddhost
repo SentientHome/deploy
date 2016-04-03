@@ -87,9 +87,6 @@ else
   OPT_OUTPUT="/dev/null"
 fi
 
-echo "Debug: $DEBUG"
-echo "Opt Out: $OPT_OUTPUT"
-
 expect 1>$OPT_OUTPUT << EOF
   spawn ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@${HOST_IP}
 
@@ -122,11 +119,11 @@ fi
 
 echo "..."
 
-if [ -n "$NEW_PASSWD" ]; then
-  echo "Changeing root password..."
-  ssh root@$HOST_IP passwd << EOF
-  ${NEW_PASSWD}
-  ${NEW_PASSWD}
+if [ -n $NEW_PASSWD ]; then
+  echo "Changeing password for root@${HOST_IP} ..."
+ssh root@$HOST_IP passwd << EOF
+${NEW_PASSWD}
+${NEW_PASSWD}
 EOF
 fi
 

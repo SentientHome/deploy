@@ -100,7 +100,12 @@ expect << EOF
   }
 EOF
 
-echo " "
+if [ $? -ne 0 ]; then
+  echo "👎  Someting went wrong."
+  exit 2
+fi
+
+echo "..."
 
 if [ ! -z "${NEW_PASSWD}" ]; then
   echo "Changeing root password"

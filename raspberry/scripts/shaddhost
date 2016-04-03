@@ -82,7 +82,7 @@ ssh-keygen -R $HOST_NAME
 echo "Copying public key to host $HOST_IP ..."
 
 if [ $DEBUG -eq 1 ]; then
-  OPT_OUTPUT="&1"
+  OPT_OUTPUT="/dev/stdout"
 else
   OPT_OUTPUT="/dev/null"
 fi

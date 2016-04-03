@@ -43,7 +43,7 @@ eval set -- "$args"
 while getopts "hdn:o:" opt; do
   case $opt in
     h)  usage ;;
-    p)  NEW_PASSWD=$OPTARG ;;
+    n)  NEW_PASSWD=$OPTARG ;;
     o)  OLD_PASSWD=$OPTARG ;;
     d)  DEBUG=1 ;;
     \?) usage ;;

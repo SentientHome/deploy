@@ -87,6 +87,9 @@ else
   OPT_OUTPUT=""
 fi
 
+echo "Debug: $DEBUG"
+echo "Opt Out: $OPT_OUTPUT"
+
 expect $OPT_OUTPUT << EOF
   spawn ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@${HOST_IP}
 

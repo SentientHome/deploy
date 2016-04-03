@@ -53,7 +53,7 @@ shift $((OPTIND -1))
 
 HOST=$1
 
-if [ -z "${HOST}" ]; then
+if [ -z "$HOST" ]; then
   echo "No host specified.\n"
   usage
 fi
@@ -94,22 +94,22 @@ expect << EOF
           exit 3
         }
       }
-      # send -- "\r"
+      send -- "\r"
     }
     eof
   }
 EOF
 
 if [ $? -ne 0 ]; then
-  echo "👎  Someting went wrong."
+  echo "👎  Something went wrong."
   exit 2
 fi
 
 echo "..."
 
-if [ ! -z "${NEW_PASSWD}" ]; then
-  echo "Changeing root password"
-  ssh root@$HOST_IP passwd <<EOF
+if [ ! -z "$NEW_PASSWD" ]; then
+  echo "Changeing root password..."
+  ssh root@$HOST_IP passwd << EOF
   ${NEW_PASSWD}
   ${NEW_PASSWD}
 EOF

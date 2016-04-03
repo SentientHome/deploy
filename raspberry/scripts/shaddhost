@@ -20,6 +20,7 @@ EOF
 }
 
 OLD_PASSWD="hypriot"
+DEBUG=0
 
 # translate long options to short
 for arg
@@ -29,6 +30,7 @@ do
     --help) args="${args}-h ";;
     --newpassword) args="${args}-n ";;
     --oldpassword) args="${args}-o ";;
+    --debug) args="${args}-d ";;
     # pass through anything else
     *) [[ "${arg:0:1}" == "-" ]] || delim="\""
       args="${args}${delim}${arg}${delim} ";;
@@ -37,11 +39,12 @@ done
 # reset the translated args
 eval set -- "$args"
 # now we can process with getopt
-while getopts "hn:o:" opt; do
+while getopts "hdn:o:" opt; do
   case $opt in
     h)  usage ;;
     p)  NEW_PASSWD=$OPTARG ;;
     o)  OLD_PASSWD=$OPTARG ;;
+    d)  DEBUG=1 ;;
     \?) usage ;;
     :)
       echo "Option -$OPTARG requires an argument\n"
@@ -77,7 +80,14 @@ ssh-keygen -R $HOST_IP
 ssh-keygen -R $HOST_NAME
 
 echo "Copying public key to host $HOST_IP ..."
-expect 1>/dev/null << EOF
+
+if [ $DEBUG -eq 1 ]; then
+  OPT_OUTPUT="1>/dev/null"
+else
+  OPT_OUTPUT=""
+fi
+
+expect $OPT_OUTPUT << EOF
   spawn ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@${HOST_IP}
 
   expect {
@@ -99,14 +109,17 @@ expect 1>/dev/null << EOF
   }
 EOF
 
-if [ $? -ne 0 ]; then
+if [ $? -eq 3 ]; then
+  echo "👎  Incorrect host password."
+  exit 2
+elif [ $? -ne 0 ]; then
   echo "👎  Something went wrong."
   exit 2
 fi
 
 echo "..."
 
-if [ ! -z "$NEW_PASSWD" ]; then
+if [ -n "$NEW_PASSWD" ]; then
   echo "Changeing root password..."
   ssh root@$HOST_IP passwd << EOF
   ${NEW_PASSWD}

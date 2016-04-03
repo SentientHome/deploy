@@ -11,12 +11,20 @@ ssh root@master
 
 The next steps need to be performed on the `master`.
 
+## Install dependencies
+
+Here are some packages we require to bring up the master:
+
+```shell
+apt-get install expect
+```
+
 ## Generating a new key pair
 
 In order to establish secure password less ssh connectivity between the master
 and all the cluster nodes in the house we generate a new rsa_id:
 
-```bash
+```shell
 ssh-keygen -t rsa -b 4096 -q -P "" -f /root/.ssh/id_rsa
 ```
 

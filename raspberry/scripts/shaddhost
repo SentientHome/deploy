@@ -97,7 +97,7 @@ expect << EOF
     }
     eof
   }
-EOF
+EOF 1>/dev/null
 
 if [ $? -ne 0 ]; then
   echo "👎  Something went wrong."

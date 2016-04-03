@@ -1,0 +1,83 @@
+#!/bin/bash
+# Add a new host to the SentientHome Master
+# Oliver Ratzesberger
+# MIT License
+
+usage()
+{
+  cat << EOF
+usage: $0 [options] hostname-of-rpi
+
+Add a newly created host to the SentientHome Master
+
+OPTIONS:
+  --help|-h      Show this message
+  --password|-p  Set root password for new host
+
+EOF
+  exit 1
+}
+
+# translate long options to short
+for arg
+do
+  delim=""
+  case "${arg}" in
+    --help) args="${args}-h ";;
+    --password) args="${args}-p ";;
+    # pass through anything else
+    *) [[ "${arg:0:1}" == "-" ]] || delim="\""
+      args="${args}${delim}${arg}${delim} ";;
+  esac
+done
+# reset the translated args
+eval set -- "$args"
+# now we can process with getopt
+while getopts ":h:p:" opt; do
+  case $opt in
+    h)  usage ;;
+    p)  ROOT_PASSWORD=$OPTARG ;;
+    \?) usage ;;
+    :)
+      echo "option -$OPTARG requires an argument"
+      usage
+    ;;
+  esac
+done
+shift $((OPTIND -1))
+
+host=$1
+
+if [ "$1" == "--help" ]; then
+  usage
+fi
+
+domain="${host##*.}"
+hostname="${host%.*}"
+
+function getip() { (traceroute $1 2>&1 | head -n 1 | cut -d\( -f 2 | cut -d\) -f 1) }
+HOST_IP=$(getip ${hostname}.local)
+
+if [ $? -eq 0 ]; then
+  echo "$1 found at $HOST_IP."
+else
+  echo "$1 could not be located in network."
+  exit 2
+fi
+
+ssh-keygen -R $HOST_IP
+ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@$HOST_IP
+
+if [ ! -z "${ROOT_PASSWORD}" ]; then
+  echo "Changeing root password"
+  ssh root@$HOST_IP passwd <<EOF
+  ${ROOT_PASSWORD}
+  ${ROOT_PASSWORD}
+EOF
+fi
+
+if [ $? -eq 0 ]; then
+  echo "🍺  Finished."
+else
+  echo "👎  Someting went wrong."
+fi

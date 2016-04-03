@@ -21,14 +21,35 @@ EOF
 
 log()
 {
+  # Common logging format use in place of echo when possible
   me=`basename "$0"`
 
-  echo $me `date +%Y%m%d%H%M%S` $1
+  echo `date +%Y%m%d%H%M%S%3N` "("$me")" $1
+}
+
+header()
+{
+  log SentientHome
+  log
+  log Module:         `basename "$0"`
+  log Path:           `dirname  "$0"`
+  log Host:           `uname -n`
+  log OS:             `uname -o`
+  log Kernel-Name:    `uname -s`
+  log Kernel-Release: `uname -r`
+  log Kernel-Version: `uname -v`
+  log Machine:        `uname -m`
+  log Processor:      `uname -p`
+  log Platform:       `uname -i`
+  log
 }
 
 # Default settings
 OLD_PASSWD="hypriot"
 DEBUG=0
+
+# Start by logging environment info
+header
 
 # translate long options to short
 for arg
@@ -90,8 +111,8 @@ else
 fi
 
 log "Removing any existing host keys for $HOST_NAME and $HOST_IP ..."
-ssh-keygen -R $HOST_IP
-ssh-keygen -R $HOST_NAME
+ssh-keygen -R $HOST_IP &>$OPT_OUTPUT
+ssh-keygen -R $HOST_NAME &>$OPT_OUTPUT
 
 log "Copying public key to host $HOST_IP ..."
 
@@ -124,8 +145,6 @@ elif [ $? -eq 2 ]; then
   log "👎  Key copy timed out."
   exit 2
 fi
-
-echo "..."
 
 if [ -n $NEW_PASSWD ]; then
   log "Changeing password for root@${HOST_IP} ..."

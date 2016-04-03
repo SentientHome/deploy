@@ -80,7 +80,7 @@ echo "Copying public key to host $HOST_IP..."
 expect << EOF
   spawn ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@${HOST_IP}
 
-  expect "Password: "
+  expect ".*assword.*"
   send "$OLD_PASSWD\r"
   send -- "\r"
   expect eof

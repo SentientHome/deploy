@@ -59,11 +59,11 @@ if [ -z "${HOST}" ]; then
 fi
 
 
-DOAMIN="${HOST##*.}"
-HOSTNAME="${HOST%.*}"
+HOST_DOMAIN="${HOST##*.}"
+HOST_NAME="${HOST%.*}"
 
 function getip() { (traceroute $1 2>&1 | head -n 1 | cut -d\( -f 2 | cut -d\) -f 1) }
-HOST_IP=$(getip ${HOSTNAME}.local)
+HOST_IP=$(getip ${HOST_NAME}.local)
 
 if [ $? -eq 0 ]; then
   echo "$1 found at $HOST_IP."
@@ -72,16 +72,31 @@ else
   exit 2
 fi
 
+echo "Removing any existing host keys for $HOST_NAME and $HOST_IP..."
 ssh-keygen -R $HOST_IP
+ssh-keygen -R $HOST_NAME
 
-VAR=$(expect -c "expect '' \
-  {eval spawn \
-  ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@${HOST_IP}; \
-  interact -o -nobuffer -re .*assword.* return; \
-  send "${OLD_PASSWD}\r"; send -- "\r"; \
-  expect eof;} ")
+echo "Copying public key to host $HOST_IP..."
+expect << EOF
+  spawn ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@${HOST_IP}
 
-echo $VAR
+  expect "Password: "
+  send "$OLD_PASSWD\r"
+  send -- "\r"
+  expect eof
+EOF
+
+
+
+
+# VAR=$(expect -d -c "expect '' \
+#   {eval spawn \
+#   ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@${HOST_IP}; \
+#   interact -o -nobuffer -re .*assword.* return; \
+#   send "${OLD_PASSWD}\r"; send -- "\r"; \
+#   expect eof;} ")
+#
+# echo $VAR
 
 # ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@$HOST_IP
 

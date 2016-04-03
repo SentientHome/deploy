@@ -11,12 +11,15 @@ usage: $0 [options] hostname-of-rpi
 Add a newly created host to the SentientHome Master
 
 OPTIONS:
-  --help|-h      Show this message
-  --password|-p  Set root password for new host
+  --help|-h         Show this message
+  --newpassword|-n  Set new root password for host
+  --oldpassword|-o  Existing root for new host default=hypriot
 
 EOF
   exit 1
 }
+
+OLD_PASSWD = "hypriot"
 
 # translate long options to short
 for arg
@@ -24,7 +27,8 @@ do
   delim=""
   case "${arg}" in
     --help) args="${args}-h ";;
-    --password) args="${args}-p ";;
+    --newpassword) args="${args}-n ";;
+    --oldpassword) args="${args}-o ";;
     # pass through anything else
     *) [[ "${arg:0:1}" == "-" ]] || delim="\""
       args="${args}${delim}${arg}${delim} ";;
@@ -33,10 +37,11 @@ done
 # reset the translated args
 eval set -- "$args"
 # now we can process with getopt
-while getopts ":h:p:" opt; do
+while getopts ":h:n:o:" opt; do
   case $opt in
     h)  usage ;;
-    p)  ROOT_PASSWORD=$OPTARG ;;
+    p)  NEW_PASSWD=$OPTARG ;;
+    o)  OLD_PASSWD=$OPTARG ;;
     \?) usage ;;
     :)
       echo "option -$OPTARG requires an argument"
@@ -46,17 +51,21 @@ while getopts ":h:p:" opt; do
 done
 shift $((OPTIND -1))
 
-host=$1
+HOST=$1
 
-if [ "$1" == "--help" ]; then
+if [ -z "${HOST}" ]; then
   usage
 fi
 
-domain="${host##*.}"
-hostname="${host%.*}"
+# if [ "$1" == "--help" ]; then
+#   usage
+# fi
+
+DOAMIN="${HOST##*.}"
+HOSTNAME="${HOST%.*}"
 
 function getip() { (traceroute $1 2>&1 | head -n 1 | cut -d\( -f 2 | cut -d\) -f 1) }
-HOST_IP=$(getip ${hostname}.local)
+HOST_IP=$(getip ${HOSTNAME}.local)
 
 if [ $? -eq 0 ]; then
   echo "$1 found at $HOST_IP."
@@ -66,13 +75,23 @@ else
 fi
 
 ssh-keygen -R $HOST_IP
-ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@$HOST_IP
 
-if [ ! -z "${ROOT_PASSWORD}" ]; then
+VAR=$(expect -c "expect '' \
+  {eval spawn \
+  ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@$HOST_IP; \
+  interact -o -nobuffer -re .*assword.* return; \
+  send "$OLD_PASSWD\r"; send -- "\r"; \
+  expect eof;} ")
+
+echo "$VAR"
+
+# ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@$HOST_IP
+
+if [ ! -z "${NEW_PASSWD}" ]; then
   echo "Changeing root password"
   ssh root@$HOST_IP passwd <<EOF
-  ${ROOT_PASSWORD}
-  ${ROOT_PASSWORD}
+  ${NEW_PASSWD}
+  ${NEW_PASSWD}
 EOF
 fi
 

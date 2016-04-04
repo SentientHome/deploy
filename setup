@@ -30,10 +30,15 @@ log()
 
 header()
 {
+  # As we are working with sym links we also need to know the real path
+  REALPATH=`realpath ${BASH_SOURCE[0]}`
+  REALDIR=`dirname "$REALPATH"`
+
   log SentientHome
   log
   log "Module:         " `basename "$0"`
   log "Path:           " "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  log "Realpath:       " $REALDIR
   log "Host:           " `uname -n`
   log "OS:             " `uname -o`
   log "Kernel-Name:    " `uname -s`
@@ -45,8 +50,8 @@ header()
   log
   log "git Version:    " `git --version`
   log
-  log "git Revision:   " `git describe --tags --always HEAD`
-  log "git Dirty:      " `git status --porcelain`
+  log "git Revision:   " "$( cd $REALDIR && git describe --tags --always HEAD )"
+  log "git Dirty:      " "$( cd $REALDIR && git status --porcelain )"
   log
 }
 

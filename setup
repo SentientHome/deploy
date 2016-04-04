@@ -107,6 +107,8 @@ else
   OPT_OUTPUT="/dev/null"
 fi
 
+# TODO: Mount HDD/SDD
+
 # Update all packages
 log "Updating all packages. This can take a while ..."
 aptget update
@@ -164,6 +166,14 @@ fi
 
 # Now lets install ansible
 aptget install ansible
+
+# TODO: Link SentientHome scripts
+
+
+# TODO: Backup Master
+
+
+
 
 if [ $? -eq 0 ]; then
   log "🍺  Finished."

@@ -14,6 +14,7 @@ OPTIONS:
   --help|-h         Show this message
   --newpassword|-n  Set new root password for host
   --oldpassword|-o  Existing root password for new host default=hypriot
+  --debug|-d        Debug mode
 
 EOF
   exit 1

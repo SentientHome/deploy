@@ -1,0 +1,58 @@
+#!/bin/bash
+# Add a new host to the SentientHome Master
+# Oliver Ratzesberger
+# MIT License
+
+usage()
+{
+  cat << EOF
+usage: $0 [options]
+
+Initial setup of the SentientHome Master
+
+OPTIONS:
+  --help|-h         Show this message
+  --debug|-d        Debug mode
+
+
+EOF
+  exit 1
+}
+
+# Default settings
+DEBUG=0
+
+# translate long options to short
+for arg
+do
+  delim=""
+  case "${arg}" in
+    --help) args="${args}-h ";;
+    --debug) args="${args}-d ";;
+    # pass through anything else
+    *) [[ "${arg:0:1}" == "-" ]] || delim="\""
+      args="${args}${delim}${arg}${delim} ";;
+  esac
+done
+# reset the translated args
+eval set -- "$args"
+# now we can process with getopt
+while getopts "hd" opt; do
+  case $opt in
+    h)  usage ;;
+    d)  DEBUG=1 ;;
+    \?) usage ;;
+    :)
+      echo "Option -$OPTARG requires an argument\n"
+      usage
+    ;;
+  esac
+done
+shift $((OPTIND -1))
+
+if [ $DEBUG -eq 1 ]; then
+  set -x
+  OPT_OUTPUT="/dev/stdout"
+else
+  OPT_OUTPUT="/dev/null"
+fi

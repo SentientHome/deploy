@@ -63,6 +63,18 @@ aptget()
   fi
 }
 
+linktool()
+{
+  log "Linking $1 to $2"
+
+  ln -s $1 $2
+
+  if [ $? -ne 0 ]; then
+    log "👎  Error linking $1 to $2"
+    exit 20
+  fi
+}
+
 # Start by logging environment info
 header
 
@@ -168,7 +180,13 @@ fi
 aptget install ansible
 
 # TODO: Link SentientHome scripts
+TARGETPATH=/usr/local/bin/
+log "Linking SentientHome tools to $TARGETPATH ..."
+# link /root/shDeploy/Linux/shaddhost $TARGETPATH
 
+for file in $(find /root/shDeploy/Linux -executable -type f); do
+  linktool $file $TARGETPATH
+done
 
 # TODO: Backup Master
 

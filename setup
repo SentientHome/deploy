@@ -99,9 +99,9 @@ log "Installing expect dependecy ..."
 apt-get -y install expect 1>$OPT_OUTPUT
 
 if [ $FORCE -eq 1 ]; then
-  $RESPONSE="y"
+  RESPONSE="y"
 else
-  $RESPONSE="n"
+  RESPONSE="n"
 fi
 
 KEYFILE=/root/.ssh/id_rsa

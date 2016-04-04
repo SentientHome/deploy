@@ -184,7 +184,7 @@ fi
 # Now lets install ansible
 aptget install ansible
 
-# TODO: Link SentientHome scripts
+# Link SentientHome scripts
 TARGETPATH=/usr/local/bin/
 log "Linking SentientHome tools to $TARGETPATH ..."
 # link /root/shDeploy/Linux/shaddhost $TARGETPATH
@@ -193,10 +193,10 @@ for file in $(find /root/shDeploy/Linux -executable -type f); do
   linktool $file $TARGETPATH
 done
 
-# TODO: Backup Master
+# Backup Master
+log "Backing up Master Host. This can take a while ..."
 
-
-
+shbackup
 
 if [ $? -eq 0 ]; then
   log "🍺  Finished."

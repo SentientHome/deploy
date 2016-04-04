@@ -90,8 +90,13 @@ else
   OPT_OUTPUT="/dev/null"
 fi
 
+KEYFILE=/root/.ssh/id_rsa
+# Generating ssh key pair
+log "Generating ssh key pair $KEYFILE ..."
+ssh-keygen -t rsa -b 4096 -q -P "" -f $KEYFILE
+
 # Install dependencies
-log "Installing expect dependecy."
+log "Installing expect dependecy ..."
 apt-get -y install expect 1>$OPT_OUTPUT
 
 if [ $? -eq 0 ]; then

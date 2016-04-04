@@ -52,7 +52,7 @@ header()
 
 aptget()
 {
-  if [ $1 -eq "install"]; then
+  if [ $1 -eq "install" ]; then
     log "Installing $2 ..."
   fi
   apt-get -y $1 $2 1>$OPT_OUTPUT

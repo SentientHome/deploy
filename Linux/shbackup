@@ -28,12 +28,13 @@ log()
 
 header()
 {
-  REALPATH=`dirname realpath ${BASH_SOURCE[0]}`
+  REALPATH=`realpath ${BASH_SOURCE[0]}`
+  REALDIR=`dirname "$REALPATH"`
   log SentientHome
   log
   log "Module:         " `basename "$0"`
   log "Path:           " "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-  log "Realpath:       " $REALPATH
+  log "Realpath:       " $REALDIR
   log "Host:           " `uname -n`
   log "OS:             " `uname -o`
   log "Kernel-Name:    " `uname -s`

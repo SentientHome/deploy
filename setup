@@ -108,7 +108,7 @@ else
 fi
 
 # Update all packages
-log "Updating all packages ..."
+log "Updating all packages. This can take a while ..."
 aptget update
 log "Upgrading all packages ..."
 aptget upgrade
@@ -132,7 +132,7 @@ KEYFILE=/root/.ssh/id_rsa
 log "Generating ssh key pair $KEYFILE ..."
 
 expect 1>$OPT_OUTPUT << EOF
-  set timeout 60
+  set timeout 120
   spawn ssh-keygen -t rsa -b 4096 -q -P "" -f $KEYFILE
 
   expect {

@@ -32,6 +32,7 @@ header()
   log
   log "Module:         " `basename "$0"`
   log "Path:           " "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  log "Realpath:       " `realpath ${BASH_SOURCE[0]}`
   log "Host:           " `uname -n`
   log "OS:             " `uname -o`
   log "Kernel-Name:    " `uname -s`

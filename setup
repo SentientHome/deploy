@@ -98,6 +98,11 @@ fi
 log "Installing expect dependecy ..."
 apt-get -y install expect 1>$OPT_OUTPUT
 
+if [ $? -ne 0 ]; then
+  log "👎  Error installing expect."
+  exit 2
+fi
+
 if [ $FORCE -eq 1 ]; then
   RESPONSE="y"
 else
@@ -128,6 +133,16 @@ expect 1>$OPT_OUTPUT << EOF
     eof
   }
 EOF
+
+if [ $? -eq 2 ]; then
+  log "👎  Key generation timed out. Try again or lower bits"
+  exit 3
+elif [ $? -ne 0 ]; then
+  log "👎  Error generating key pair $KEYFILE"
+  exit 4
+fi
+
+# Now lets install ansible
 
 if [ $? -eq 0 ]; then
   log "🍺  Finished."

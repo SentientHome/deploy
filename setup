@@ -99,9 +99,9 @@ log "Installing expect dependecy ..."
 apt-get -y install expect 1>$OPT_OUTPUT
 
 if [ $FORCE -eq 1 ]; then
-  $RESPONCE="y"
+  $RESPONSE="y"
 else
-  $RESPONCE="n"
+  $RESPONSE="n"
 fi
 
 KEYFILE=/root/.ssh/id_rsa
@@ -117,7 +117,7 @@ expect 1>$OPT_OUTPUT << EOF
       exit 2
     }
     "Overwrite (y/n)?" {
-      send "$FORCE\r"
+      send "$RESPONSE\r"
       expect {
         timeout {
           exit 2

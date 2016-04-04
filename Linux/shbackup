@@ -54,6 +54,7 @@ header
 # Default settings
 DEBUG=0
 BACKUPDIR=/root/backups
+MAXBACKUPS=5
 
 # translate long options to short
 for arg
@@ -99,9 +100,17 @@ fi
 
 BACKUPFILE="$BACKUPDIR/`uname -n`.`date +%Y%m%d%H%M%S`.backup.tar.gz"
 log "Creating backup $BACKUPFILE ..."
-sudo tar --exclude=$BACKUPDIR --one-file-system -cvzf $BACKUPFILE / /boot 1>$OPT_OUTPUT
+tar --exclude=$BACKUPDIR --one-file-system -cvzf $BACKUPFILE / /boot 1>$OPT_OUTPUT
 if [ $? -ne 0 ]; then
   log "👎  Error creating back: $BACKUPFILE"
+  exit 3
+fi
+
+TRIMLIST=$MAXBACKUPS+1
+log "Removing older backups files in $BACKUPDIR ... "
+rm -f $(ls -1t $BACKUPDIR | tail -n +$TRIMLIST) 1>$OPT_OUTPUT
+if [ $? -ne 0 ]; then
+  log "👎  Error removing older backup files in $BACKUPDIR"
   exit 3
 fi
 

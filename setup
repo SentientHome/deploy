@@ -12,6 +12,7 @@ Initial setup of the SentientHome Master
 
 OPTIONS:
   --help|-h         Show this message
+  --force|-f        Force generation of new keys. Replace existing
   --debug|-d        Debug mode
 
 
@@ -54,6 +55,7 @@ header
 
 # Default settings
 DEBUG=0
+FORCE=0
 
 # translate long options to short
 for arg
@@ -61,6 +63,7 @@ do
   delim=""
   case "${arg}" in
     --help) args="${args}-h ";;
+    --force) args="${args}-f ";;
     --debug) args="${args}-d ";;
     # pass through anything else
     *) [[ "${arg:0:1}" == "-" ]] || delim="\""
@@ -70,9 +73,10 @@ done
 # reset the translated args
 eval set -- "$args"
 # now we can process with getopt
-while getopts "hd" opt; do
+while getopts "hfd" opt; do
   case $opt in
     h)  usage ;;
+    h)  FORCE=1 ;;
     d)  DEBUG=1 ;;
     \?) usage ;;
     :)
@@ -94,12 +98,18 @@ fi
 log "Installing expect dependecy ..."
 apt-get -y install expect 1>$OPT_OUTPUT
 
+if [ $FORCE -eq 1 ]; then
+  $RESPONCE="y"
+else
+  $RESPONCE="n"
+fi
+
 KEYFILE=/root/.ssh/id_rsa
 # Generating ssh key pair
 log "Generating ssh key pair $KEYFILE ..."
 
 expect 1>$OPT_OUTPUT << EOF
-  set timeout 30
+  set timeout 60
   spawn ssh-keygen -t rsa -b 4096 -q -P "" -f $KEYFILE
 
   expect {
@@ -107,7 +117,7 @@ expect 1>$OPT_OUTPUT << EOF
       exit 2
     }
     "Overwrite (y/n)?" {
-      send "n\r"
+      send "$FORCE\r"
       expect {
         timeout {
           exit 2

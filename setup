@@ -76,7 +76,7 @@ eval set -- "$args"
 while getopts "hfd" opt; do
   case $opt in
     h)  usage ;;
-    h)  FORCE=1 ;;
+    f)  FORCE=1 ;;
     d)  DEBUG=1 ;;
     \?) usage ;;
     :)

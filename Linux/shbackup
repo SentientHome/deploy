@@ -1,5 +1,5 @@
 #!/bin/bash
-# Add a new host to the SentientHome Master
+# Backup host
 # Oliver Ratzesberger
 # MIT License
 
@@ -8,13 +8,11 @@ usage()
   cat << EOF
 usage: $0 [options]
 
-Initial setup of the SentientHome Master
+Backup the entire SentientHome host into a restoreable tar
 
 OPTIONS:
   --help|-h         Show this message
-  --force|-f        Force generation of new keys. Replace existing
   --debug|-d        Debug mode
-
 
 EOF
   exit 1
@@ -55,37 +53,13 @@ header()
   log
 }
 
-aptget()
-{
-  if [ $1 == install ]; then
-    log "Installing $2 ..."
-  fi
-  apt-get -y $1 $2 1>$OPT_OUTPUT
-
-  if [ $? -ne 0 ]; then
-    log "👎  Error apt-get $1 $2"
-    exit 10
-  fi
-}
-
-linktool()
-{
-  log "Linking $1 to $2"
-
-  ln -s -f $1 $2
-
-  if [ $? -ne 0 ]; then
-    log "👎  Error linking $1 to $2"
-    exit 20
-  fi
-}
-
 # Start by logging environment info
 header
 
 # Default settings
 DEBUG=0
-FORCE=0
+BACKUPDIR=/root/backups
+MAXBACKUPS=5
 
 # translate long options to short
 for arg
@@ -93,7 +67,6 @@ do
   delim=""
   case "${arg}" in
     --help) args="${args}-h ";;
-    --force) args="${args}-f ";;
     --debug) args="${args}-d ";;
     # pass through anything else
     *) [[ "${arg:0:1}" == "-" ]] || delim="\""
@@ -103,10 +76,9 @@ done
 # reset the translated args
 eval set -- "$args"
 # now we can process with getopt
-while getopts "hfd" opt; do
+while getopts "hd" opt; do
   case $opt in
     h)  usage ;;
-    f)  FORCE=1 ;;
     d)  DEBUG=1 ;;
     \?) usage ;;
     :)
@@ -124,79 +96,28 @@ else
   OPT_OUTPUT="/dev/null"
 fi
 
-# TODO: Mount HDD/SDD
-
-# Update all packages
-log "Updating all packages. This can take a while ..."
-aptget update
-log "Upgrading all packages ..."
-aptget upgrade
-
-# INstall additional packages
-aptget install python-dev
-aptget install python-pip
-aptget install python3
-aptget install python3-dev
-aptget install python3-pip
-aptget install expect
-
-# Generating ssh key pair
-if [ $FORCE -eq 1 ]; then
-  RESPONSE="y"
-else
-  RESPONSE="n"
+log "Creating backup dir: $BACKUPDIR ..."
+mkdir -p $BACKUPDIR 1>$OPT_OUTPUT
+if [ $? -ne 0 ]; then
+  log "👎  Error creating backup dir: $BACKUPDIR"
+  exit 2
 fi
 
-KEYFILE=/root/.ssh/id_rsa
-log "Generating ssh key pair $KEYFILE ..."
-
-expect 1>$OPT_OUTPUT << EOF
-  set timeout 120
-  spawn ssh-keygen -t rsa -b 4096 -q -P "" -f $KEYFILE
-
-  expect {
-    timeout {
-      exit 2
-    }
-    "Overwrite (y/n)?" {
-      send $RESPONSE
-      send "\r"
-      expect {
-        timeout {
-          exit 2
-        }
-      }
-    }
-    eof
-  }
-EOF
-
-EXITCODE=$?
-
-if [ $EXITCODE -eq 2 ]; then
-  log "👎  Key generation timed out. Try again or lower bits"
+BACKUPFILE="$BACKUPDIR/`uname -n`.`date +%Y%m%d%H%M%S`.backup.tar.gz"
+log "Creating backup $BACKUPFILE ..."
+tar --exclude=$BACKUPDIR --one-file-system -cvzf $BACKUPFILE / /boot 1>$OPT_OUTPUT
+if [ $? -ne 0 ]; then
+  log "👎  Error creating back: $BACKUPFILE"
   exit 3
-elif [ $EXITCODE -ne 0 ]; then
-  log "👎  Error generating key pair $KEYFILE"
-  exit 4
 fi
 
-# Now lets install ansible
-aptget install ansible
-
-# Link SentientHome scripts
-TARGETPATH=/usr/local/bin/
-log "Linking SentientHome tools to $TARGETPATH ..."
-# link /root/shDeploy/Linux/shaddhost $TARGETPATH
-
-for file in $(find /root/shDeploy/Linux -executable -type f); do
-  linktool $file $TARGETPATH
-done
-
-# Backup Master
-log "Backing up Master Host. This can take a while ..."
-
-shbackup
+TRIMLIST=$((MAXBACKUPS + 1))
+log "Removing older backups files in $BACKUPDIR ... "
+rm -f $(ls -1t $BACKUPDIR | tail -n +$TRIMLIST) 1>$OPT_OUTPUT
+if [ $? -ne 0 ]; then
+  log "👎  Error removing older backup files in $BACKUPDIR"
+  exit 3
+fi
 
 if [ $? -eq 0 ]; then
   log "🍺  Finished."

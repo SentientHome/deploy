@@ -152,10 +152,12 @@ expect 1>$OPT_OUTPUT << EOF
   }
 EOF
 
-if [ $? -eq 2 ]; then
+EXITCODE = $?
+
+if [ $EXITCODE -eq 2 ]; then
   log "👎  Key generation timed out. Try again or lower bits"
   exit 3
-elif [ $? -ne 0 ]; then
+elif [ $EXITCODE -ne 0 ]; then
   log "👎  Error generating key pair $KEYFILE"
   exit 4
 fi

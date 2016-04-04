@@ -48,8 +48,8 @@ header()
   log
   log "git Version:    " `git --version`
   log
-  log "git Revision:   " "$( cd $REALDIR && `git describe --tags --always HEAD` )"
-  log "git Dirty:      " "$( cd $REALDIR && `git status --porcelain` )"
+  log "git Revision:   " "$( cd $REALDIR && git describe --tags --always HEAD )"
+  log "git Dirty:      " "$( cd $REALDIR && git status --porcelain )"
   log
 }
 

@@ -50,6 +50,19 @@ header()
   log
 }
 
+aptget()
+{
+  if [ $1 -eq "install"]; then
+    log "Installing $2 ..."
+  fi
+  apt-get -y $1 $2 1>$OPT_OUTPUT
+
+  if [ $? -ne 0 ]; then
+    log "👎  Error apt-get $1 $2"
+    exit 10
+  fi
+}
+
 # Start by logging environment info
 header
 
@@ -94,15 +107,21 @@ else
   OPT_OUTPUT="/dev/null"
 fi
 
-# Install dependencies
-log "Installing expect dependecy ..."
-apt-get -y install expect 1>$OPT_OUTPUT
+# Update all packages
+log "Updating all packages ..."
+aptget update
+log "Upgrading all packages ..."
+aptget upgrade
 
-if [ $? -ne 0 ]; then
-  log "👎  Error installing expect."
-  exit 2
-fi
+# INstall additional packages
+aptget install python-dev
+aptget install python-pip
+aptget install python3
+aptget install python3-dev
+aptget install python3-pip
+aptget install expect
 
+# Generating ssh key pair
 if [ $FORCE -eq 1 ]; then
   RESPONSE="y"
 else
@@ -110,7 +129,6 @@ else
 fi
 
 KEYFILE=/root/.ssh/id_rsa
-# Generating ssh key pair
 log "Generating ssh key pair $KEYFILE ..."
 
 expect 1>$OPT_OUTPUT << EOF
@@ -143,6 +161,7 @@ elif [ $? -ne 0 ]; then
 fi
 
 # Now lets install ansible
+aptget install ansible
 
 if [ $? -eq 0 ]; then
   log "🍺  Finished."

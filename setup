@@ -117,7 +117,8 @@ expect 1>$OPT_OUTPUT << EOF
       exit 2
     }
     "Overwrite (y/n)?" {
-      send "$RESPONSE\r"
+      send $RESPONSE
+      send "\r"
       expect {
         timeout {
           exit 2

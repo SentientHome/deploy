@@ -1,0 +1,112 @@
+#!/bin/bash
+# Backup host
+# Oliver Ratzesberger
+# MIT License
+
+usage()
+{
+  cat << EOF
+usage: $0 [options]
+
+Backup the entire SentientHome host into a restoreable tar
+
+OPTIONS:
+  --help|-h         Show this message
+  --debug|-d        Debug mode
+
+EOF
+  exit 1
+}
+
+log()
+{
+  # Common logging format use in place of echo when possible
+  me=`basename "$0"`
+
+  echo `date +%Y%m%d%H%M%S%3N` "("$me")" "$1" "$2" "$3" "$4" "$5"
+}
+
+header()
+{
+  log SentientHome
+  log
+  log "Module:         " `basename "$0"`
+  log "Path:           " "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  log "Host:           " `uname -n`
+  log "OS:             " `uname -o`
+  log "Kernel-Name:    " `uname -s`
+  log "Kernel-Release: " `uname -r`
+  log "Kernel-Version: " `uname -v`
+  log "Machine:        " `uname -m`
+  log "Processor:      " `uname -p`
+  log "Platform:       " `uname -i`
+  log
+  log "git Version:    " `git --version`
+  log
+  log "git Revision:   " `git describe --tags --always HEAD`
+  log "git Dirty:      " `git status --porcelain`
+  log
+}
+
+# Start by logging environment info
+header
+
+# Default settings
+DEBUG=0
+BACKUPDIR=/root/backups
+
+# translate long options to short
+for arg
+do
+  delim=""
+  case "${arg}" in
+    --help) args="${args}-h ";;
+    --debug) args="${args}-d ";;
+    # pass through anything else
+    *) [[ "${arg:0:1}" == "-" ]] || delim="\""
+      args="${args}${delim}${arg}${delim} ";;
+  esac
+done
+# reset the translated args
+eval set -- "$args"
+# now we can process with getopt
+while getopts "hd" opt; do
+  case $opt in
+    h)  usage ;;
+    d)  DEBUG=1 ;;
+    \?) usage ;;
+    :)
+      echo "Option -$OPTARG requires an argument\n"
+      usage
+    ;;
+  esac
+done
+shift $((OPTIND -1))
+
+if [ $DEBUG -eq 1 ]; then
+  set -x
+  OPT_OUTPUT="/dev/stdout"
+else
+  OPT_OUTPUT="/dev/null"
+fi
+
+log "Creating backup dir: $BACKUPDIR ..."
+mkdir -p $BACKUPDIR 1>$OPT_OUTPUT
+if [ $? -ne 0 ]; then
+  log "👎  Error creating backup dir: $BACKUPDIR"
+  exit 2
+fi
+
+BACKUPFILE="$BACKUPDIR/`uname -n`.`date +%Y%m%d%H%M%S`.backup.tar.gz"
+log "Creating backup $BACKUPFILE ..."
+sudo tar --exclude=$BACKUPDIR --one-file-system -cvzf $BACKUPFILE / /boot 1>$OPT_OUTPUT
+if [ $? -ne 0 ]; then
+  log "👎  Error creating back: $BACKUPFILE"
+  exit 3
+fi
+
+if [ $? -eq 0 ]; then
+  log "🍺  Finished."
+else
+  log "👎  Someting went wrong."
+fi

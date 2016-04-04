@@ -46,7 +46,7 @@ header()
   log
   log "git Version:    " `git --version`
   log
-  log "git Revision:   " `git describe --tags --always HEAD`
+  log "git Revision:   " "$( cd "$REALDIR" && `git describe --tags --always HEAD` )"
   log "git Dirty:      " `git status --porcelain`
   log
 }

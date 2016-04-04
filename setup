@@ -152,7 +152,7 @@ expect 1>$OPT_OUTPUT << EOF
   }
 EOF
 
-EXITCODE = $?
+EXITCODE=$?
 
 if [ $EXITCODE -eq 2 ]; then
   log "👎  Key generation timed out. Try again or lower bits"

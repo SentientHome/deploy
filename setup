@@ -91,6 +91,7 @@ else
 fi
 
 # Install dependencies
+log "Installing expect dependecy."
 apt-get -y install expect 1>$OPT_OUTPUT
 
 if [ $? -eq 0 ]; then

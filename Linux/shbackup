@@ -109,7 +109,7 @@ if [ $? -ne 0 ]; then
   exit 3
 fi
 
-TRIMLIST=$MAXBACKUPS+1
+TRIMLIST=$((MAXBACKUPS + 1))
 log "Removing older backups files in $BACKUPDIR ... "
 rm -f $(ls -1t $BACKUPDIR | tail -n +$TRIMLIST) 1>$OPT_OUTPUT
 if [ $? -ne 0 ]; then

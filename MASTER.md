@@ -19,8 +19,12 @@ This will install the deployment framework from github directly onto the master:
 cd
 git clone https://github.com/SentientHome/shDeploy.git
 cd shDeploy
-git git checkout -b master
+git checkout master
 ```
+
+Note: Branch `master` will by default be on the latest released version of the
+deployment framework. If you like to be at the bleeding edge of development you
+can switch to `develop`.
 
 Alternatively you can fork and clone the repo via ssh - assuming you have the
 proper keys setup - so you can commit edits:
@@ -29,7 +33,7 @@ proper keys setup - so you can commit edits:
 cd
 git clone git@github.com:SentientHome/shDeploy.git #replace with your fork
 cd shDeploy
-git git checkout -b mybranch
+git checkout -b mybranch
 ```
 
 Once installed simply run:

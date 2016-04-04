@@ -67,7 +67,7 @@ linktool()
 {
   log "Linking $1 to $2"
 
-  ln -s $1 $2
+  ln -s -f $1 $2
 
   if [ $? -ne 0 ]; then
     log "👎  Error linking $1 to $2"

@@ -24,7 +24,7 @@ log()
   # Common logging format use in place of echo when possible
   me=`basename "$0"`
 
-  echo `date +%Y%m%d%H%M%S%3N` "("$me")" $1 $2 $3 $4 $5
+  echo `date +%Y%m%d%H%M%S%3N` "("$me")" "$1" "$2" "$3" "$4" "$5"
 }
 
 header()
@@ -32,7 +32,7 @@ header()
   log SentientHome
   log
   log "Module:         " `basename "$0"`
-  log "Path:           " `dirname  "$0"`
+  log "Path:           " "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   log "Host:           " `uname -n`
   log "OS:             " `uname -o`
   log "Kernel-Name:    " `uname -s`

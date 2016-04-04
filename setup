@@ -19,6 +19,39 @@ EOF
   exit 1
 }
 
+log()
+{
+  # Common logging format use in place of echo when possible
+  me=`basename "$0"`
+
+  echo `date +%Y%m%d%H%M%S%3N` "("$me")" "$1" "$2" "$3" "$4" "$5"
+}
+
+header()
+{
+  log SentientHome
+  log
+  log "Module:         " `basename "$0"`
+  log "Path:           " "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  log "Host:           " `uname -n`
+  log "OS:             " `uname -o`
+  log "Kernel-Name:    " `uname -s`
+  log "Kernel-Release: " `uname -r`
+  log "Kernel-Version: " `uname -v`
+  log "Machine:        " `uname -m`
+  log "Processor:      " `uname -p`
+  log "Platform:       " `uname -i`
+  log
+  log "git Version:    " `git --version`
+  log
+  log "git Revision:   " `git describe --tags --always HEAD`
+  log "git Dirty:      " `git status --porcelain`
+  log
+}
+
+# Start by logging environment info
+header
+
 # Default settings
 DEBUG=0
 
@@ -55,4 +88,13 @@ if [ $DEBUG -eq 1 ]; then
   OPT_OUTPUT="/dev/stdout"
 else
   OPT_OUTPUT="/dev/null"
+fi
+
+# Install dependencies
+apt-get -y install expect 1>$OPT_OUTPUT
+
+if [ $? -eq 0 ]; then
+  log "🍺  Finished."
+else
+  log "👎  Someting went wrong."
 fi

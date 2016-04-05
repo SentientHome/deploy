@@ -113,7 +113,7 @@ fi
 
 TRIMLIST=$((MAXBACKUPS + 1))
 log "Removing older backups files in $BACKUPDIR ... "
-rm -f $(ls -1t $BACKUPDIR | tail -n +$TRIMLIST) 1>$OPT_OUTPUT
+log $( cd $BACKUPDIR && rm -f $(ls -1t $BACKUPDIR | tail -n +$TRIMLIST) )
 if [ $? -ne 0 ]; then
   log "👎  Error removing older backup files in $BACKUPDIR"
   exit 3

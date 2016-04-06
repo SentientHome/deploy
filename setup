@@ -81,6 +81,10 @@ linktool()
   fi
 }
 
+# Setup logger limit to last 10 runs
+exec &> >(tee -a "/tmp/`basename "$0"`.`date +%Y%m%d%H%M%S`.log")
+( cd /tmp && rm -f $(ls -1t /tmp/`basename "$0"`* | tail -n +11) )
+
 # Start by logging environment info
 header
 

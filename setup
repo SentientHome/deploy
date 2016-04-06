@@ -4,7 +4,7 @@
 # MIT License
 
 # Setup logger limit to last 10 runs
-exec unbuffer &> >(tee -a "/tmp/`basename $0`.`date +%Y%m%d%H%M%S`.log")
+unbuffer exec &> >(tee -a "/tmp/`basename $0`.`date +%Y%m%d%H%M%S`.log")
 ( cd /tmp && rm -f $(ls -1t /tmp/`basename $0`* | tail -n +10) )
 
 # Default settings

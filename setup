@@ -132,13 +132,17 @@ aptget update
 log "Upgrading all packages ..."
 aptget upgrade
 
-# INstall additional packages
+# Install additional packages
 aptget install python-dev
 aptget install python-pip
 aptget install python3
 aptget install python3-dev
 aptget install python3-pip
 aptget install expect
+aptget install pass
+
+# TODO: Update RPI
+# rpi-update
 
 # Generating ssh key pair
 if [ $FORCE -eq 1 ]; then
@@ -196,8 +200,15 @@ done
 log "Backing up Master Host. This can take a while ..."
 shbackup
 
+# TODO: Prepare externalroot disk
+log "Preparing external root disk. This can take a while ..."
+# shrootdisk
+
 if [ $? -eq 0 ]; then
   log "🍺  Finished."
 else
   log "👎  Someting went wrong."
 fi
+
+# TODO: optional reboot - check if needed
+# reboot

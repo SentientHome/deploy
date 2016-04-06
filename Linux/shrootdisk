@@ -1,5 +1,5 @@
 #!/bin/bash
-# Add a new host to the SentientHome Master
+# Change root disk to external
 # Oliver Ratzesberger
 # MIT License
 
@@ -10,20 +10,18 @@ exec &> >(tee -a $LOGFILE)
 ( cd /tmp && rm -f $(ls -1t $LOGDIR/`basename $0`* | tail -n +10) )
 
 # Default settings
-OLD_PASSWD="hypriot"
 DEBUG=0
+BACKUPDIR=/root/backups
 
 usage()
 {
   cat << EOF
-usage: $0 [options] hostname-of-rpi
+usage: $0 [options]
 
-Add a newly created host to the SentientHome Master
+Setup external root disk and copy content of SD card onto it.
 
 OPTIONS:
   --help|-h         Show this message
-  --newpassword|-n  Set new root password for host
-  --oldpassword|-o  Existing root password for new host default=hypriot
   --debug|-d        Debug mode
 
 EOF
@@ -72,8 +70,6 @@ do
   delim=""
   case "${arg}" in
     --help) args="${args}-h ";;
-    --newpassword) args="${args}-n ";;
-    --oldpassword) args="${args}-o ";;
     --debug) args="${args}-d ";;
     # pass through anything else
     *) [[ "${arg:0:1}" == "-" ]] || delim="\""
@@ -83,11 +79,9 @@ done
 # reset the translated args
 eval set -- "$args"
 # now we can process with getopt
-while getopts "hdn:o:" opt; do
+while getopts "hd" opt; do
   case $opt in
     h)  usage ;;
-    n)  NEW_PASSWD=$OPTARG ;;
-    o)  OLD_PASSWD=$OPTARG ;;
     d)  DEBUG=1 ;;
     \?) usage ;;
     :)
@@ -108,69 +102,45 @@ else
   OPT_OUTPUT="/dev/null"
 fi
 
-HOST=$1
 
-if [ -z "$HOST" ]; then
-  log "No host specified.\n"
-  usage
-fi
+lsblk --output NAME,SIZE,TYPE,MOUNTPOINT
 
-HOST_DOMAIN="${HOST##*.}"
-HOST_NAME="${HOST%.*}"
 
-function getip() { (traceroute $1 2>&1 | head -n 1 | cut -d\( -f 2 | cut -d\) -f 1) }
-HOST_IP=$(getip ${HOST_NAME}.local)
 
-if [ $? -eq 0 ]; then
-  log "$1 found at $HOST_IP."
-else
-  log "$1 could not be located in network."
-  exit 2
-fi
 
-log "Removing any existing host keys for $HOST_NAME and $HOST_IP ..."
-ssh-keygen -R $HOST_IP &>$OPT_OUTPUT
-ssh-keygen -R $HOST_NAME &>$OPT_OUTPUT
+parted --script /dev/$DISK  "mklabel msdos"
+parted --script /dev/$DISK  "mkpart primary fat16 1MiB 65MB"
+parted --script /dev/$DISK  "mkpart primary linux-swap(v1) 65MB 4G"
+parted --script /dev/$DISK  "mkpart primary ext4 4G -1s"
+mkfs.vfat /dev/${DISK}1
+mkswap /dev/${DISK}2
+mkfs.ext4 -F -j /dev/${DISK}3
 
-log "Copying public key to host $HOST_IP ..."
 
-expect 1>$OPT_OUTPUT << EOF
-  spawn ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@${HOST_IP}
 
-  expect {
-    timeout {
-      exit 2
-    }
-    "password:" {
-      send "$OLD_PASSWD\r"
-      expect {
-        timeout {
-          exit 2
-        }
-        "Permission denied" {
-          exit 3
-        }
-      }
-    }
-    eof
-  }
-EOF
 
-if [ $? -eq 3 ]; then
-  log "👎  Incorrect host password."
-  exit 3
-elif [ $? -eq 2 ]; then
-  log "👎  Key copy timed out."
-  exit 2
-fi
-
-if [ -n $NEW_PASSWD ]; then
-  log "Changeing password for root@${HOST_IP} ..."
-ssh root@$HOST_IP passwd &>$OPT_OUTPUT << EOF
-$NEW_PASSWD
-$NEW_PASSWD
-EOF
-fi
+# log "Creating backup dir: $BACKUPDIR ..."
+# mkdir -p $BACKUPDIR 1>$OPT_OUTPUT
+# if [ $? -ne 0 ]; then
+#   log "👎  Error creating backup dir: $BACKUPDIR"
+#   exit 2
+# fi
+#
+# BACKUPFILE="$BACKUPDIR/`uname -n`.`date +%Y%m%d%H%M%S`.backup.tar.gz"
+# log "Creating backup $BACKUPFILE ..."
+# tar --exclude=$BACKUPDIR --one-file-system -cvzf $BACKUPFILE / /boot 1>$OPT_OUTPUT
+# if [ $? -ne 0 ]; then
+#   log "👎  Error creating back: $BACKUPFILE"
+#   exit 3
+# fi
+#
+# TRIMLIST=$((MAXBACKUPS + 1))
+# log "Removing older backups files in $BACKUPDIR ... "
+# log $( cd $BACKUPDIR && rm -f $(ls -1t $BACKUPDIR | tail -n +$TRIMLIST) )
+# if [ $? -ne 0 ]; then
+#   log "👎  Error removing older backup files in $BACKUPDIR"
+#   exit 3
+# fi
 
 if [ $? -eq 0 ]; then
   log "🍺  Finished."

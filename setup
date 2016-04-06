@@ -3,9 +3,21 @@
 # Oliver Ratzesberger
 # MIT License
 
+# Setup logger limit to last 10 runs
+LOGDIR=/tmp
+LOGFILE="$LOGDIR/`basename $0`.`date +%Y%m%d%H%M%S`.log"
+exec &> >(tee -a $LOGFILE)
+( cd /tmp && rm -f $(ls -1t $LOGDIR/`basename $0`* | tail -n +10) )
+
+# Default settings
+DEBUG=0
+FORCE=0
+REBOOT=0
+
 usage()
 {
   cat << EOF
+
 usage: $0 [options]
 
 Initial setup of the SentientHome Master
@@ -14,7 +26,6 @@ OPTIONS:
   --help|-h         Show this message
   --force|-f        Force generation of new keys. Replace existing
   --debug|-d        Debug mode
-
 
 EOF
   exit 1
@@ -39,6 +50,7 @@ header()
   log "Module:         " `basename "$0"`
   log "Path:           " "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   log "Realpath:       " $REALDIR
+  log "Logfile:        " $LOGFILE
   log "Host:           " `uname -n`
   log "OS:             " `uname -o`
   log "Kernel-Name:    " `uname -s`
@@ -80,13 +92,6 @@ linktool()
   fi
 }
 
-# Start by logging environment info
-header
-
-# Default settings
-DEBUG=0
-FORCE=0
-
 # translate long options to short
 for arg
 do
@@ -117,6 +122,9 @@ while getopts "hfd" opt; do
 done
 shift $((OPTIND -1))
 
+# Start by logging environment info
+header
+
 if [ $DEBUG -eq 1 ]; then
   set -x
   OPT_OUTPUT="/dev/stdout"
@@ -124,7 +132,21 @@ else
   OPT_OUTPUT="/dev/null"
 fi
 
-# TODO: Mount HDD/SDD
+# Update RPI
+log "Checking for Raspberry firmware update ..."
+JUST_CHECK=1 rpi-update 1>$OPT_OUTPUT
+EXITCODE=$?
+
+if [ $EXITCODE -eq 2 ]; then
+  log "Updating Raspberry firmware. This can take a while ..."
+  JUST_CHECK=0 rpi-update 1>$OPT_OUTPUT
+  REBOOT=1
+elif [ $EXITCODE -ne 0 ]; then
+  log "👎  Error checking Raspberry firmware."
+  exit 2
+else
+  log "Firmware already up to date!"
+fi
 
 # Update all packages
 log "Updating all packages. This can take a while ..."
@@ -132,13 +154,14 @@ aptget update
 log "Upgrading all packages ..."
 aptget upgrade
 
-# INstall additional packages
+# Install additional packages
 aptget install python-dev
 aptget install python-pip
 aptget install python3
 aptget install python3-dev
 aptget install python3-pip
 aptget install expect
+aptget install pass
 
 # Generating ssh key pair
 if [ $FORCE -eq 1 ]; then
@@ -156,14 +179,14 @@ expect 1>$OPT_OUTPUT << EOF
 
   expect {
     timeout {
-      exit 2
+      exit 3
     }
     "Overwrite (y/n)?" {
       send $RESPONSE
       send "\r"
       expect {
         timeout {
-          exit 2
+          exit 4
         }
       }
     }
@@ -175,10 +198,10 @@ EXITCODE=$?
 
 if [ $EXITCODE -eq 2 ]; then
   log "👎  Key generation timed out. Try again or lower bits"
-  exit 3
+  exit 5
 elif [ $EXITCODE -ne 0 ]; then
   log "👎  Error generating key pair $KEYFILE"
-  exit 4
+  exit 6
 fi
 
 # Now lets install ansible
@@ -196,8 +219,18 @@ done
 log "Backing up Master Host. This can take a while ..."
 shbackup
 
+# TODO: Prepare externalroot disk
+log "Preparing external root disk. This can take a while ..."
+# shrootdisk
+
 if [ $? -eq 0 ]; then
   log "🍺  Finished."
 else
   log "👎  Someting went wrong."
+fi
+
+# Optional reboot - check if needed
+if [ $REBOOT -eq 1 ]; then
+  log "🍅  REBOOT REQUIRED!"
+  exit 99
 fi

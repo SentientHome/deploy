@@ -144,6 +144,8 @@ if [ $EXITCODE -eq 2 ]; then
 elif [ $EXITCODE -ne 0 ]; then
   log "👎  Error checking Raspberry firmware."
   exit 2
+else
+  log "Firmware already up to date!"
 fi
 
 # Update all packages

@@ -4,8 +4,10 @@
 # MIT License
 
 # Setup logger limit to last 10 runs
-exec &> >(tee -a "/tmp/`basename $0`.`date +%Y%m%d%H%M%S`.log")
-( cd /tmp && rm -f $(ls -1t /tmp/`basename $0`* | tail -n +10) )
+LOGDIR=/tmp
+LOGFILE="$LOGDIR/`basename $0`.`date +%Y%m%d%H%M%S`.log"
+exec &> >(tee -a $LOGFILE)
+( cd /tmp && rm -f $(ls -1t $LOGDIR/`basename $0`* | tail -n +10) )
 
 # Default settings
 DEBUG=0
@@ -46,6 +48,7 @@ header()
   log "Module:         " `basename "$0"`
   log "Path:           " "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   log "Realpath:       " $REALDIR
+  log "Logfile:        " $LOGFILE
   log "Host:           " `uname -n`
   log "OS:             " `uname -o`
   log "Kernel-Name:    " `uname -s`

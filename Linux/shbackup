@@ -3,6 +3,17 @@
 # Oliver Ratzesberger
 # MIT License
 
+# Setup logger limit to last 10 runs
+LOGDIR=/tmp
+LOGFILE="$LOGDIR/`basename $0`.`date +%Y%m%d%H%M%S`.log"
+exec &> >(tee -a $LOGFILE)
+( cd /tmp && rm -f $(ls -1t $LOGDIR/`basename $0`* | tail -n +10) )
+
+# Default settings
+DEBUG=0
+BACKUPDIR=/root/backups
+MAXBACKUPS=5
+
 usage()
 {
   cat << EOF
@@ -37,6 +48,7 @@ header()
   log "Module:         " `basename "$0"`
   log "Path:           " "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   log "Realpath:       " $REALDIR
+  log "Logfile:        " $LOGFILE
   log "Host:           " `uname -n`
   log "OS:             " `uname -o`
   log "Kernel-Name:    " `uname -s`
@@ -52,14 +64,6 @@ header()
   log "git Dirty:      " "$( cd $REALDIR && git status --porcelain )"
   log
 }
-
-# Start by logging environment info
-header
-
-# Default settings
-DEBUG=0
-BACKUPDIR=/root/backups
-MAXBACKUPS=5
 
 # translate long options to short
 for arg
@@ -89,6 +93,9 @@ while getopts "hd" opt; do
 done
 shift $((OPTIND -1))
 
+# Start by logging environment info
+header
+
 if [ $DEBUG -eq 1 ]; then
   set -x
   OPT_OUTPUT="/dev/stdout"
@@ -113,7 +120,7 @@ fi
 
 TRIMLIST=$((MAXBACKUPS + 1))
 log "Removing older backups files in $BACKUPDIR ... "
-log $( cd $BACKUPDIR && rm -f $(ls -1t $BACKUPDIR | tail -n +$TRIMLIST) )
+log $( cd $BACKUPDIR && rm -f $(ls -1t `uname -n`* $BACKUPDIR | tail -n +$TRIMLIST) )
 if [ $? -ne 0 ]; then
   log "👎  Error removing older backup files in $BACKUPDIR"
   exit 3

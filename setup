@@ -128,11 +128,11 @@ fi
 
 # Update RPI
 log "Checking for Raspberry firmware update ..."
-( JUST_CHECK=1 && rpi-update 1>$OPT_OUTPUT )
+JUST_CHECK=1 rpi-update 1>$OPT_OUTPUT
 
 if [ $EXITCODE -eq 2 ]; then
   log "Updating Raspberry firmware. This can take a while ..."
-  rpi-update 1>$OPT_OUTPUT
+  JUST_CHECK=0 rpi-update 1>$OPT_OUTPUT
   REBOOT=1
 elif [ $EXITCODE -ne 0 ]; then
   log "👎  Error checking Raspberry firmware."

@@ -3,6 +3,14 @@
 # Oliver Ratzesberger
 # MIT License
 
+# Setup logger limit to last 10 runs
+exec &> >(tee -a "/tmp/`basename $0`.`date +%Y%m%d%H%M%S`.log")
+( cd /tmp && rm -f $(ls -1t /tmp/`basename $0`* | tail -n +10) )
+
+# Default settings
+OLD_PASSWD="hypriot"
+DEBUG=0
+
 usage()
 {
   cat << EOF
@@ -55,13 +63,6 @@ header()
   log
 }
 
-# Default settings
-OLD_PASSWD="hypriot"
-DEBUG=0
-
-# Start by logging environment info
-header
-
 # translate long options to short
 for arg
 do
@@ -93,6 +94,9 @@ while getopts "hdn:o:" opt; do
   esac
 done
 shift $((OPTIND -1))
+
+# Start by logging environment info
+header
 
 if [ $DEBUG -eq 1 ]; then
   set -x

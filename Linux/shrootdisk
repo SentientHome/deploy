@@ -11,6 +11,9 @@ exec &> >(tee -a $LOGFILE)
 
 # Default settings
 DEBUG=0
+INITIALIZE=0
+NOSWAP=0
+DISK=sda
 BACKUPDIR=/root/backups
 
 usage()
@@ -21,6 +24,9 @@ usage: $0 [options]
 Setup external root disk and copy content of SD card onto it.
 
 OPTIONS:
+  --init|-i         Initialize external drive. Caution: All data on drive will
+                    be erased as the drive will get repartitioned and formated.
+  --noswap|-n       Do not create a swap partition on the external drive
   --help|-h         Show this message
   --debug|-d        Debug mode
 
@@ -64,6 +70,26 @@ header()
   log
 }
 
+_doparted()
+{
+  log "Executing parted for $1: $2"
+  parted --script "$1" "$2" 1>$OPT_OUTPUT
+
+  if [ $? -ne 0 ]; then
+    log "👎  Error executing parted for $1: $2"
+    exit 20
+}
+
+_dofs()
+{
+  log "Creating filesystem $1 on $2"
+  $1 "$2" 1>$OPT_OUTPUT
+
+  if [ $? -ne 0 ]; then
+    log "👎  Error creating filesystem $1 on $2"
+    exit 30
+}
+
 # translate long options to short
 for arg
 do
@@ -81,6 +107,8 @@ eval set -- "$args"
 # now we can process with getopt
 while getopts "hd" opt; do
   case $opt in
+    i)  INITIALIZE=1 ;;
+    i)  NOSWAP=1 ;;
     h)  usage ;;
     d)  DEBUG=1 ;;
     \?) usage ;;
@@ -102,20 +130,29 @@ else
   OPT_OUTPUT="/dev/null"
 fi
 
+log "Current File systems:"
+log `lsblk --output NAME,SIZE,TYPE,MOUNTPOINT`
 
-lsblk --output NAME,SIZE,TYPE,MOUNTPOINT
+log "Current root drive:"
+log `lsblk -P --output NAME,MOUNTPOINT|grep \"/\"$`
+log `lsblk --output NAME,SIZE,TYPE,MOUNTPOINT|grep /$`
 
+if [ $INITIALIZE -eq 1 ]; then
+  log "Partitioning external root drive: /dev/$DISK"
+  _doparted /dev/$DISK  "mklabel msdos"
+  _doparted /dev/$DISK  "mkpart primary fat16 1MiB 65MB"
+  if [ $NOSWAP -eq 0 ]; then
+    _doparted /dev/$DISK  "mkpart primary linux-swap(v1) 65MB 4G"
+  fi
+  _doparted /dev/$DISK  "mkpart primary ext4 4G -1s"
 
-
-
-parted --script /dev/$DISK  "mklabel msdos"
-parted --script /dev/$DISK  "mkpart primary fat16 1MiB 65MB"
-parted --script /dev/$DISK  "mkpart primary linux-swap(v1) 65MB 4G"
-parted --script /dev/$DISK  "mkpart primary ext4 4G -1s"
-mkfs.vfat /dev/${DISK}1
-mkswap /dev/${DISK}2
-mkfs.ext4 -F -j /dev/${DISK}3
-
+  log "Creating filesystems on external root drive: /dev/$DISK"
+  _dofs mkfs.vfat /dev/${DISK}1
+  if [ $NOSWAP -eq 0 ]; then
+    _dofs mkswap /dev/${DISK}2
+  fi
+  _dofs mkfs.ext4 -F -j /dev/${DISK}3
+fi
 
 
 

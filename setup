@@ -157,11 +157,11 @@ aptget upgrade
 # Install additional packages
 aptget install python-dev
 aptget install python-pip
-aptget install python3
-aptget install python3-dev
-aptget install python3-pip
+# aptget install python3
+# aptget install python3-dev
+# aptget install python3-pip
 aptget install expect
-aptget install pass
+# aptget install pass
 
 # Generating ssh key pair
 if [ $FORCE -eq 1 ]; then

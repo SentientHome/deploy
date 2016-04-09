@@ -13,7 +13,9 @@ exec &> >(tee -a $LOGFILE)
 DEBUG=0
 INITIALIZE=0
 NOSWAP=0
-DISK=sda
+CURPARTITION=
+NEWDISK=sda
+DEFAULTDISK=mmcblk0p2
 BACKUPDIR=/root/backups
 
 usage()
@@ -131,28 +133,54 @@ else
 fi
 
 log "Current File systems:"
-log `lsblk --output NAME,SIZE,TYPE,MOUNTPOINT`
+log ( lsblk --output NAME,SIZE,TYPE,MOUNTPOINT )
 
-log "Current root drive:"
-log `lsblk -P --output NAME,MOUNTPOINT|grep \"/\"$`
-log `lsblk --output NAME,SIZE,TYPE,MOUNTPOINT|grep /$`
+CURPARTITION=( lsblk -P --output NAME,MOUNTPOINT|grep \"/\"$|grep -oP '(?<=\bNAME=)[^ ]+'|tr -d '"' )
 
-if [ $INITIALIZE -eq 1 ]; then
-  log "Partitioning external root drive: /dev/$DISK"
-  _doparted /dev/$DISK  "mklabel msdos"
-  _doparted /dev/$DISK  "mkpart primary fat16 1MiB 65MB"
-  if [ $NOSWAP -eq 0 ]; then
-    _doparted /dev/$DISK  "mkpart primary linux-swap(v1) 65MB 4G"
-  fi
-  _doparted /dev/$DISK  "mkpart primary ext4 4G -1s"
+log "Current root partition: $CURPARTITION"
 
-  log "Creating filesystems on external root drive: /dev/$DISK"
-  _dofs mkfs.vfat /dev/${DISK}1
-  if [ $NOSWAP -eq 0 ]; then
-    _dofs mkswap /dev/${DISK}2
-  fi
-  _dofs mkfs.ext4 -F -j /dev/${DISK}3
+# Validate that new disk actually exists
+if [ "$NEWDISK" == ( lsblk -P --output NAME,MOUNTPOINT|grep \"$NEWDISK\"$|grep -oP '(?<=\bNAME=)[^ ]+'|tr -d '"' ) ]; then
+  log "Target disk verified: $NEWDISK"
+else
+  log "👎  New target disk $NEWDISK does not exist."
+  exit 2
 fi
+
+if [[ "$CURPARTITION" == "$DEFAULTDISK"* ]]; then
+  # curent root partition is on the PI's internal SD card
+  log "Current root partition $CURPARTITION on $DEFAULTDISK"
+
+  if [ $INITIALIZE -eq 1 ]; then
+    log "Partitioning external root drive: /dev/$DISK"
+    _doparted /dev/$NEWDISK  "mklabel msdos"
+    _doparted /dev/$NEWDISK  "mkpart primary fat16 1MiB 65MB"
+    if [ $NOSWAP -eq 0 ]; then
+      _doparted /dev/$NEWDISK  "mkpart primary linux-swap(v1) 65MB 4G"
+    fi
+    _doparted /dev/$NEWDISK  "mkpart primary ext4 4G -1s"
+
+    log "Creating filesystems on external root drive: /dev/$DISK"
+    _dofs mkfs.vfat /dev/${NEWDISK}1
+    if [ $NOSWAP -eq 0 ]; then
+      _dofs mkswap /dev/${NEWDISK}2
+    fi
+    _dofs mkfs.ext4 -F -j /dev/${NEWDISK}3
+  fi
+
+elif [[ "$CURPARTITION" == "$NEWDISK"* ]]; then
+  # current root partion is already on the new target disk
+  log "Current root partition $CURPARTITION already on new taregt $NEWDISK"
+  log "👎  New target disk $NEWDISK already in use. Nothing to change."
+  exit 3
+else
+  # current root partion is neither on he internal SD card nor target disk
+  log "Current root partition $CURPARTITION not on internal SD card $DEFAULTDISK"
+  log "👎  Root partition $CURPARTITION on another disk."
+  exit 4
+
+fi
+
 
 
 

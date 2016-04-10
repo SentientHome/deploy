@@ -12,6 +12,7 @@ exec &> >(tee -a $LOGFILE)
 # Default settings
 DEBUG=0
 FORCE=0
+REBOOT=0
 
 usage()
 {
@@ -23,7 +24,6 @@ Initial setup of the SentientHome Master
 
 OPTIONS:
   --help|-h         Show this message
-  --force|-f        Force generation of new keys. Replace existing
   --debug|-d        Debug mode
 
 EOF
@@ -107,10 +107,9 @@ done
 # reset the translated args
 eval set -- "$args"
 # now we can process with getopt
-while getopts "hfd" opt; do
+while getopts "hd" opt; do
   case $opt in
     h)  usage ;;
-    f)  FORCE=1 ;;
     d)  DEBUG=1 ;;
     \?) usage ;;
     :)
@@ -131,57 +130,29 @@ else
   OPT_OUTPUT="/dev/null"
 fi
 
-# Install additional packages
-aptget install python-dev
-aptget install python-pip
-aptget install expect
-aptget install ansible
-
-# Generating ssh key pair
-if [ $FORCE -eq 1 ]; then
-  RESPONSE="y"
-else
-  RESPONSE="n"
-fi
-
-KEYFILE=/root/.ssh/id_rsa
-log "Generating ssh key pair $KEYFILE ..."
-
-expect 1>$OPT_OUTPUT << EOF
-  set timeout 120
-  spawn ssh-keygen -t rsa -b 4096 -q -P "" -f $KEYFILE
-
-  expect {
-    timeout {
-      exit 3
-    }
-    "Overwrite (y/n)?" {
-      send $RESPONSE
-      send "\r"
-      expect {
-        timeout {
-          exit 4
-        }
-      }
-    }
-    eof
-  }
-EOF
-
+# Update RPI
+log "Checking for Raspberry firmware update ..."
+JUST_CHECK=1 rpi-update 1>$OPT_OUTPUT
 EXITCODE=$?
 
 if [ $EXITCODE -eq 2 ]; then
-  log "👎  Key generation timed out. Try again or lower bits"
-  exit 5
+  log "Updating Raspberry firmware. This can take a while ..."
+  JUST_CHECK=0 rpi-update 1>$OPT_OUTPUT
+  REBOOT=1
 elif [ $EXITCODE -ne 0 ]; then
-  log "👎  Error generating key pair $KEYFILE"
-  exit 6
+  log "👎  Error checking Raspberry firmware."
+  exit 2
+else
+  log "Firmware already up to date!"
 fi
 
-# Link SentientHome scripts
-TARGETPATH=/usr/local/bin/
-log "Linking SentientHome tools to $TARGETPATH ..."
+# Update all packages
+log "Updating all packages. This can take a while ..."
+aptget update
+log "Upgrading all packages ..."
+aptget upgrade
 
+# Re-link all tool in case there ar new ones after the update
 for file in $(find /root/shDeploy/Linux -executable -type f); do
   linktool $file $TARGETPATH
 done
@@ -190,4 +161,10 @@ if [ $? -eq 0 ]; then
   log "🍺  Finished."
 else
   log "👎  Someting went wrong."
+fi
+
+# Optional reboot - check if needed
+if [ $REBOOT -eq 1 ]; then
+  log "🍅  REBOOT REQUIRED!"
+  exit 99
 fi

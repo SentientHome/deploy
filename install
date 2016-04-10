@@ -102,14 +102,14 @@ fi
 
 # Clone SentientHome deployment repo
 
-log "Creating backup dir: $BACKUPDIR ..."
+log "Creating SentientHome dir: $SENTIENTHOME_PREFIX/SentientHome ..."
 mkdir -p $SENTIENTHOME_PREFIX/SentientHome 1>$OPT_OUTPUT
-if [ $? -ne 0 ]; then
-  log "👎  Fatal error creating SentientHome dir: $SENTIENTHOME_PREFIX/SentientHome"
-  exit 2
-fi
 
-$( cd "$SENTIENTHOME_PREFIX"/SentientHome && git clone "$SENTIENTHOME_REPO" )
+git clone "$SENTIENTHOME_REPO" "$SENTIENTHOME_PREFIX"/SentientHome
+if [ $? -ne 0 ]; then
+  log "👎  Fatal error cloning SentientHome."
+  exit 3
+fi
 
 # Run Setup
 "$SENTIENTHOME_PREFIX"/SentientHome/setup

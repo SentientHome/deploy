@@ -17,9 +17,7 @@ DEBUG=0
 FORCE=0
 
 # As we are working with sym links we also need to know the real path to here
-REALPATH=`realpath ${BASH_SOURCE[0]}`
-REALDIR=`dirname "$REALPATH"`
-THIS=`basename "$0"`
+THIS="SentientHome.install"
 
 usage()
 {
@@ -49,7 +47,6 @@ header()
   log
   log "Module:         " $THIS
   log "Path:           " "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-  log "Realpath:       " $REALDIR
   log "Logfile:        " $LOGFILE
   log "Host:           " `uname -n`
   log "OS:             " `uname -o`

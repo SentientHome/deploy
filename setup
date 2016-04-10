@@ -15,6 +15,7 @@ SENTIENTHOME = 'https://github.com/SentientHome/SentientHome'
 # Default settings
 DEBUG=0
 FORCE=0
+TARGETPATH=/usr/local/bin/
 
 # As we are working with sym links we also need to know the real path to here
 REALPATH=`realpath ${BASH_SOURCE[0]}`
@@ -181,10 +182,9 @@ elif [ $EXITCODE -ne 0 ]; then
 fi
 
 # Link SentientHome scripts
-TARGETPATH=/usr/local/bin/
 log "Linking SentientHome tools to $TARGETPATH ..."
 
-for file in $(find /root/shDeploy/Linux -executable -type f); do
+for file in $(find "$SENTIENTHOME_PREFIX"/SentientHome/Linux -executable -type f); do
   _linktool $file $TARGETPATH
 done
 

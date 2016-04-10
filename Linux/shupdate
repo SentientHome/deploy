@@ -153,6 +153,9 @@ log "Upgrading all packages ..."
 aptget upgrade
 
 # Re-link all tool in case there ar new ones after the update
+TARGETPATH=/usr/local/bin/
+log "Re-Linking SentientHome tools to $TARGETPATH ..."
+
 for file in $(find /root/shDeploy/Linux -executable -type f); do
   linktool $file $TARGETPATH
 done

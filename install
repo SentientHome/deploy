@@ -10,7 +10,7 @@ exec &> >(tee -a $LOGFILE)
 ( cd /tmp && rm -f $(ls -1t $LOGDIR/`basename $0`* | tail -n +10) )
 
 SENTIENTHOME_PREFIX = '/usr/local'
-SENTIENTHOME = 'https://github.com/SentientHome/SentientHome'
+SENTIENTHOME_REPO = 'https://github.com/SentientHome/shDeploy'
 
 # Default settings
 DEBUG=0
@@ -27,11 +27,10 @@ usage()
 
 usage: $0 [options]
 
-Initial setup of the SentientHome Master
+Initial install of the SentientHome Master
 
 OPTIONS:
   --help|-h         Show this message
-  --force|-f        Force generation of new keys. Replace existing
   --debug|-d        Debug mode
 
 EOF
@@ -63,34 +62,6 @@ header()
   log
   log "git Version:    " `git --version`
   log
-  log "git Revision:   " "$( cd $REALDIR && git describe --tags --always HEAD )"
-  log "git Dirty:      " "$( cd $REALDIR && git status --porcelain )"
-  log
-}
-
-_aptget()
-{
-  if [ $1 == install ]; then
-    log "Installing $2 ..."
-  fi
-  apt-get -y $1 $2 1>$OPT_OUTPUT
-
-  if [ $? -ne 0 ]; then
-    log "👎  Error apt-get $1 $2"
-    exit 10
-  fi
-}
-
-_linktool()
-{
-  log "Linking $1 to $2"
-
-  ln -s -f $1 $2
-
-  if [ $? -ne 0 ]; then
-    log "👎  Error linking $1 to $2"
-    exit 20
-  fi
 }
 
 # translate long options to short
@@ -109,10 +80,9 @@ done
 # reset the translated args
 eval set -- "$args"
 # now we can process with getopt
-while getopts "hfd" opt; do
+while getopts "hd" opt; do
   case $opt in
     h)  usage ;;
-    f)  FORCE=1 ;;
     d)  DEBUG=1 ;;
     \?) usage ;;
     :)
@@ -133,63 +103,9 @@ else
   OPT_OUTPUT="/dev/null"
 fi
 
-# Install additional packages
-_aptget install python-dev
-_aptget install python-pip
-_aptget install expect
-_aptget install ansible
+# Clone SentientHome deployment repo
+mkdir -f $SENTIENTHOME_PREFIX/SentientHome
+$( cd "$SENTIENTHOME_PREFIX"/SentientHome && git clone "$SENTIENTHOME_REPO" )
 
-# Generating ssh key pair
-if [ $FORCE -eq 1 ]; then
-  RESPONSE="y"
-else
-  RESPONSE="n"
-fi
-
-KEYFILE=/root/.ssh/id_rsa
-log "Generating ssh key pair $KEYFILE ..."
-
-expect 1>$OPT_OUTPUT << EOF
-  set timeout 120
-  spawn ssh-keygen -t rsa -b 4096 -q -P "" -f $KEYFILE
-
-  expect {
-    timeout {
-      exit 3
-    }
-    "Overwrite (y/n)?" {
-      send $RESPONSE
-      send "\r"
-      expect {
-        timeout {
-          exit 4
-        }
-      }
-    }
-    eof
-  }
-EOF
-
-EXITCODE=$?
-
-if [ $EXITCODE -eq 2 ]; then
-  log "👎  Key generation timed out. Try again or lower bits"
-  exit 5
-elif [ $EXITCODE -ne 0 ]; then
-  log "👎  Error generating key pair $KEYFILE"
-  exit 6
-fi
-
-# Link SentientHome scripts
-TARGETPATH=/usr/local/bin/
-log "Linking SentientHome tools to $TARGETPATH ..."
-
-for file in $(find /root/shDeploy/Linux -executable -type f); do
-  _linktool $file $TARGETPATH
-done
-
-if [ $? -eq 0 ]; then
-  log "🍺  Finished."
-else
-  log "👎  Someting went wrong."
-fi
+# Run Setup
+"$SENTIENTHOME_PREFIX"/SentientHome/setup

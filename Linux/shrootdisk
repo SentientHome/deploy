@@ -109,7 +109,7 @@ done
 # reset the translated args
 eval set -- "$args"
 # now we can process with getopt
-while getopts "hd" opt; do
+while getopts "inhd" opt; do
   case $opt in
     i)  INITIALIZE=1 ;;
     i)  NOSWAP=1 ;;

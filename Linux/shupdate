@@ -131,7 +131,7 @@ fi
 
 # Update Sentient Home
 log "Before Update Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
-$( cd $REALDIR && git pull )
+( cd $REALDIR && git pull )
 log "After Update Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
 
 # Update RPI

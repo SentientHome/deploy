@@ -9,8 +9,8 @@ LOGFILE="$LOGDIR/`basename $0`.`date +%Y%m%d%H%M%S`.log"
 exec &> >(tee -a $LOGFILE)
 ( cd /tmp && rm -f $(ls -1t $LOGDIR/`basename $0`* | tail -n +10) )
 
-SENTIENTHOME_PREFIX = '/usr/local'
-SENTIENTHOME_REPO = 'https://github.com/SentientHome/shDeploy'
+SENTIENTHOME_PREFIX='/usr/local'
+SENTIENTHOME_REPO='https://github.com/SentientHome/shDeploy'
 
 # Default settings
 DEBUG=0

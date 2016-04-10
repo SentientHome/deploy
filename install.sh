@@ -102,10 +102,17 @@ fi
 
 # Clone SentientHome deployment repo
 
-log "Creating SentientHome dir: $SENTIENTHOME_PREFIX/SentientHome ..."
-mkdir -p $SENTIENTHOME_PREFIX/SentientHome 1>$OPT_OUTPUT
+# log "Creating SentientHome dir: $SENTIENTHOME_PREFIX/SentientHome ..."
+# mkdir -p $SENTIENTHOME_PREFIX/SentientHome &>$OPT_OUTPUT
 
-git clone "$SENTIENTHOME_REPO" "$SENTIENTHOME_PREFIX"/SentientHome
+git status "$SENTIENTHOME_PREFIX"/SentientHome
+if [ $? -eq 0 ]; then
+  log "SentientHome already installed - Updating ..."
+  git pull "$SENTIENTHOME_PREFIX"/SentientHome
+else
+  git clone "$SENTIENTHOME_REPO" "$SENTIENTHOME_PREFIX"/SentientHome
+fi
+
 if [ $? -ne 0 ]; then
   log "👎  Fatal error cloning SentientHome."
   exit 3

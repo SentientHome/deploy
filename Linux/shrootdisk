@@ -80,6 +80,7 @@ _doparted()
   if [ $? -ne 0 ]; then
     log "👎  Error executing parted for $1: $2"
     exit 20
+  fi
 }
 
 _dofs()
@@ -90,6 +91,7 @@ _dofs()
   if [ $? -ne 0 ]; then
     log "👎  Error creating filesystem $1 on $2"
     exit 30
+  fi
 }
 
 # translate long options to short
@@ -178,7 +180,6 @@ else
   log "Current root partition $CURPARTITION not on internal SD card $DEFAULTDISK"
   log "👎  Root partition $CURPARTITION is already on another disk."
   exit 4
-
 fi
 
 

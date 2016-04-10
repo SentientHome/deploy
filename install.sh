@@ -108,7 +108,7 @@ mkdir -p "$SENTIENTHOME_PREFIX"/SentientHome &>$OPT_OUTPUT
 log $( cd "$SENTIENTHOME_PREFIX"/SentientHome && git status )
 if [ $? -eq 0 ]; then
   log "SentientHome already installed - Updating ..."
-  git pull "$SENTIENTHOME_PREFIX"/SentientHome
+  log $( cd "$SENTIENTHOME_PREFIX"/SentientHome && git pull )
 else
   git clone "$SENTIENTHOME_REPO" "$SENTIENTHOME_PREFIX"/SentientHome
 fi

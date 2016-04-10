@@ -176,7 +176,7 @@ elif [[ "$CURPARTITION" == "$NEWDISK"* ]]; then
 else
   # current root partion is neither on he internal SD card nor target disk
   log "Current root partition $CURPARTITION not on internal SD card $DEFAULTDISK"
-  log "👎  Root partition $CURPARTITION on another disk."
+  log "👎  Root partition $CURPARTITION is already on another disk."
   exit 4
 
 fi

@@ -135,7 +135,7 @@ else
 fi
 
 log "Current File systems:"
-log $( lsblk --output NAME,SIZE,TYPE,MOUNTPOINT )
+lsblk --output NAME,SIZE,TYPE,MOUNTPOINT 1>$OPT_OUTPUT
 
 CURPARTITION=$( lsblk -P --output NAME,MOUNTPOINT|grep \"/\"$|grep -oP '(?<=\bNAME=)[^ ]+'|tr -d '"' )
 

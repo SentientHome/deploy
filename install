@@ -3,9 +3,12 @@
 # Oliver Ratzesberger
 # MIT License
 
+# Provide self contained module name since we might get pulled via curl
+THIS="SentientHome.install"
+
 # Setup logger limit to last 10 runs
 LOGDIR=/tmp
-LOGFILE="$LOGDIR/`basename $0`.`date +%Y%m%d%H%M%S`.log"
+LOGFILE="$LOGDIR/"$THIS".`date +%Y%m%d%H%M%S`.log"
 exec &> >(tee -a $LOGFILE)
 ( cd /tmp && rm -f $(ls -1t $LOGDIR/`basename $0`* | tail -n +10) )
 
@@ -15,9 +18,6 @@ SENTIENTHOME_REPO='https://github.com/SentientHome/shDeploy'
 # Default settings
 DEBUG=0
 FORCE=0
-
-# As we are working with sym links we also need to know the real path to here
-THIS="SentientHome.install"
 
 usage()
 {

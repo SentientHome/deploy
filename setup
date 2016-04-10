@@ -152,7 +152,7 @@ log "Generating ssh key pair $KEYFILE ..."
 
 expect 1>$OPT_OUTPUT << EOF
   set timeout 120
-  spawn ssh-keygen -t rsa -b 4096 -q -P "" -f $KEYFILE
+  spawn ssh-keygen -t rsa -b 2048 -q -P "" -f $KEYFILE
 
   expect {
     timeout {

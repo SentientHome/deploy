@@ -142,7 +142,7 @@ CURPARTITION=$( lsblk -P --output NAME,MOUNTPOINT|grep \"/\"$|grep -oP '(?<=\bNA
 log "Current root partition: $CURPARTITION"
 
 # Validate that new disk actually exists
-if [ "$NEWDISK" == $( lsblk -P --output NAME,MOUNTPOINT|grep \"$NEWDISK\"$|grep -oP '(?<=\bNAME=)[^ ]+'|tr -d '"' ) ]; then
+if [ "$NEWDISK" == "$( lsblk -P --output NAME,MOUNTPOINT|grep \"$NEWDISK\"$|grep -oP '(?<=\bNAME=)[^ ]+'|tr -d '"' )" ]; then
   log "Target disk verified: $NEWDISK"
 else
   log "👎  New target disk $NEWDISK does not exist."

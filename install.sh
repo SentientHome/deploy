@@ -105,7 +105,7 @@ fi
 log "Creating SentientHome dir: $SENTIENTHOME_PREFIX/SentientHome ..."
 mkdir -p "$SENTIENTHOME_PREFIX"/SentientHome &>$OPT_OUTPUT
 
-$( cd "$SENTIENTHOME_PREFIX"/SentientHome && git status )
+( cd "$SENTIENTHOME_PREFIX"/SentientHome && git status )
 if [ $? -eq 0 ]; then
   log "SentientHome already installed - Updating ..."
   git pull "$SENTIENTHOME_PREFIX"/SentientHome

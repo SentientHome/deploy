@@ -14,6 +14,11 @@ DEBUG=0
 BACKUPDIR=/root/backups
 MAXBACKUPS=5
 
+# As we are working with sym links we also need to know the real path to here
+REALPATH=`realpath ${BASH_SOURCE[0]}`
+REALDIR=`dirname "$REALPATH"`
+THIS=`basename "$0"`
+
 usage()
 {
   cat << EOF
@@ -32,20 +37,14 @@ EOF
 log()
 {
   # Common logging format use in place of echo when possible
-  me=`basename "$0"`
-
-  echo `date +%Y%m%d%H%M%S%3N` "("$me")" "$1" "$2" "$3" "$4" "$5"
+  echo `date +%Y%m%d%H%M%S%3N` "("$THIS")" "$1" "$2" "$3" "$4" "$5"
 }
 
 header()
 {
-  # As we are working with sym links we also need to know the real path
-  REALPATH=`realpath ${BASH_SOURCE[0]}`
-  REALDIR=`dirname "$REALPATH"`
-
   log SentientHome
   log
-  log "Module:         " `basename "$0"`
+  log "Module:         " $THIS
   log "Path:           " "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   log "Realpath:       " $REALDIR
   log "Logfile:        " $LOGFILE

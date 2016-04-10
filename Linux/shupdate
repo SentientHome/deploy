@@ -1,5 +1,5 @@
 #!/bin/bash
-# Backup host
+# Add a new host to the SentientHome Master
 # Oliver Ratzesberger
 # MIT License
 
@@ -11,8 +11,8 @@ exec &> >(tee -a $LOGFILE)
 
 # Default settings
 DEBUG=0
-BACKUPDIR=/root/backups
-MAXBACKUPS=5
+FORCE=0
+REBOOT=0
 
 # As we are working with sym links we also need to know the real path to here
 REALPATH=`realpath ${BASH_SOURCE[0]}`
@@ -22,9 +22,10 @@ THIS=`basename "$0"`
 usage()
 {
   cat << EOF
+
 usage: $0 [options]
 
-Backup the entire SentientHome host into a restoreable tar
+Initial setup of the SentientHome Master
 
 OPTIONS:
   --help|-h         Show this message
@@ -64,12 +65,38 @@ header()
   log
 }
 
+_aptget()
+{
+  if [ $1 == install ]; then
+    log "Installing $2 ..."
+  fi
+  apt-get -y $1 $2 1>$OPT_OUTPUT
+
+  if [ $? -ne 0 ]; then
+    log "👎  Error apt-get $1 $2"
+    exit 10
+  fi
+}
+
+_linktool()
+{
+  log "Linking $1 to $2"
+
+  ln -s -f $1 $2
+
+  if [ $? -ne 0 ]; then
+    log "👎  Error linking $1 to $2"
+    exit 20
+  fi
+}
+
 # translate long options to short
 for arg
 do
   delim=""
   case "${arg}" in
     --help) args="${args}-h ";;
+    --force) args="${args}-f ";;
     --debug) args="${args}-d ";;
     # pass through anything else
     *) [[ "${arg:0:1}" == "-" ]] || delim="\""
@@ -102,31 +129,49 @@ else
   OPT_OUTPUT="/dev/null"
 fi
 
-log "Creating backup dir: $BACKUPDIR ..."
-mkdir -p $BACKUPDIR 1>$OPT_OUTPUT
-if [ $? -ne 0 ]; then
-  log "👎  Error creating backup dir: $BACKUPDIR"
+# Update Sentient Home
+log "Before Update Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
+( cd $REALDIR && git pull )
+log "After Update Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
+
+# Update RPI
+log "Checking for Raspberry firmware update ..."
+JUST_CHECK=1 rpi-update 1>$OPT_OUTPUT
+EXITCODE=$?
+
+if [ $EXITCODE -eq 2 ]; then
+  log "Updating Raspberry firmware. This can take a while ..."
+  JUST_CHECK=0 rpi-update 1>$OPT_OUTPUT
+  REBOOT=1
+elif [ $EXITCODE -ne 0 ]; then
+  log "👎  Error checking Raspberry firmware."
   exit 2
+else
+  log "Firmware already up to date!"
 fi
 
-BACKUPFILE="$BACKUPDIR/`uname -n`.`date +%Y%m%d%H%M%S`.backup.tar.gz"
-log "Creating backup $BACKUPFILE ..."
-tar --exclude=$BACKUPDIR --one-file-system -cvzf $BACKUPFILE / /boot 1>$OPT_OUTPUT
-if [ $? -ne 0 ]; then
-  log "👎  Error creating back: $BACKUPFILE"
-  exit 3
-fi
+# Update all packages
+log "Updating all packages. This can take a while ..."
+_aptget update
+log "Upgrading all packages ..."
+_aptget upgrade
 
-TRIMLIST=$((MAXBACKUPS + 1))
-log "Removing older backups files in $BACKUPDIR ... "
-log $( cd $BACKUPDIR && rm -f $(ls -1t `uname -n`* $BACKUPDIR | tail -n +$TRIMLIST) )
-if [ $? -ne 0 ]; then
-  log "👎  Error removing older backup files in $BACKUPDIR"
-  exit 3
-fi
+# Re-link all tool in case there ar new ones after the update
+TARGETPATH=/usr/local/bin/
+log "Re-Linking SentientHome tools to $TARGETPATH ..."
+
+for file in $(find /root/shDeploy/Linux -executable -type f); do
+  _linktool $file $TARGETPATH
+done
 
 if [ $? -eq 0 ]; then
   log "🍺  Finished."
 else
   log "👎  Someting went wrong."
+fi
+
+# Optional reboot - check if needed
+if [ $REBOOT -eq 1 ]; then
+  log "🍅  REBOOT REQUIRED!"
+  exit 99
 fi

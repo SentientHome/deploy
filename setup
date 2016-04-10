@@ -12,7 +12,11 @@ exec &> >(tee -a $LOGFILE)
 # Default settings
 DEBUG=0
 FORCE=0
-REBOOT=0
+
+# As we are working with sym links we also need to know the real path to here
+REALPATH=`realpath ${BASH_SOURCE[0]}`
+REALDIR=`dirname "$REALPATH"`
+THIS=`basename "$0"`
 
 usage()
 {
@@ -34,20 +38,14 @@ EOF
 log()
 {
   # Common logging format use in place of echo when possible
-  me=`basename "$0"`
-
-  echo `date +%Y%m%d%H%M%S%3N` "("$me")" "$1" "$2" "$3" "$4" "$5"
+  echo `date +%Y%m%d%H%M%S%3N` "("$THIS")" "$1" "$2" "$3" "$4" "$5"
 }
 
 header()
 {
-  # As we are working with sym links we also need to know the real path
-  REALPATH=`realpath ${BASH_SOURCE[0]}`
-  REALDIR=`dirname "$REALPATH"`
-
   log SentientHome
   log
-  log "Module:         " `basename "$0"`
+  log "Module:         " $THIS
   log "Path:           " "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   log "Realpath:       " $REALDIR
   log "Logfile:        " $LOGFILE
@@ -67,7 +65,7 @@ header()
   log
 }
 
-aptget()
+_aptget()
 {
   if [ $1 == install ]; then
     log "Installing $2 ..."
@@ -80,7 +78,7 @@ aptget()
   fi
 }
 
-linktool()
+_linktool()
 {
   log "Linking $1 to $2"
 
@@ -132,36 +130,11 @@ else
   OPT_OUTPUT="/dev/null"
 fi
 
-# Update RPI
-log "Checking for Raspberry firmware update ..."
-JUST_CHECK=1 rpi-update 1>$OPT_OUTPUT
-EXITCODE=$?
-
-if [ $EXITCODE -eq 2 ]; then
-  log "Updating Raspberry firmware. This can take a while ..."
-  JUST_CHECK=0 rpi-update 1>$OPT_OUTPUT
-  REBOOT=1
-elif [ $EXITCODE -ne 0 ]; then
-  log "👎  Error checking Raspberry firmware."
-  exit 2
-else
-  log "Firmware already up to date!"
-fi
-
-# Update all packages
-log "Updating all packages. This can take a while ..."
-aptget update
-log "Upgrading all packages ..."
-aptget upgrade
-
 # Install additional packages
-aptget install python-dev
-aptget install python-pip
-aptget install python3
-aptget install python3-dev
-aptget install python3-pip
-aptget install expect
-aptget install pass
+_aptget install python-dev
+_aptget install python-pip
+_aptget install expect
+_aptget install ansible
 
 # Generating ssh key pair
 if [ $FORCE -eq 1 ]; then
@@ -204,33 +177,16 @@ elif [ $EXITCODE -ne 0 ]; then
   exit 6
 fi
 
-# Now lets install ansible
-aptget install ansible
-
 # Link SentientHome scripts
 TARGETPATH=/usr/local/bin/
 log "Linking SentientHome tools to $TARGETPATH ..."
 
 for file in $(find /root/shDeploy/Linux -executable -type f); do
-  linktool $file $TARGETPATH
+  _linktool $file $TARGETPATH
 done
-
-# Backup Master
-log "Backing up Master Host. This can take a while ..."
-shbackup
-
-# TODO: Prepare externalroot disk
-log "Preparing external root disk. This can take a while ..."
-# shrootdisk
 
 if [ $? -eq 0 ]; then
   log "🍺  Finished."
 else
   log "👎  Someting went wrong."
-fi
-
-# Optional reboot - check if needed
-if [ $REBOOT -eq 1 ]; then
-  log "🍅  REBOOT REQUIRED!"
-  exit 99
 fi

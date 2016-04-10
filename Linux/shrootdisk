@@ -135,9 +135,9 @@ else
 fi
 
 log "Current File systems:"
-log ( lsblk --output NAME,SIZE,TYPE,MOUNTPOINT )
+log $( lsblk --output NAME,SIZE,TYPE,MOUNTPOINT )
 
-CURPARTITION=( lsblk -P --output NAME,MOUNTPOINT|grep \"/\"$|grep -oP '(?<=\bNAME=)[^ ]+'|tr -d '"' )
+CURPARTITION=$( lsblk -P --output NAME,MOUNTPOINT|grep \"/\"$|grep -oP '(?<=\bNAME=)[^ ]+'|tr -d '"' )
 
 log "Current root partition: $CURPARTITION"
 

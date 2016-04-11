@@ -100,26 +100,25 @@ else
   OPT_OUTPUT="/dev/null"
 fi
 
-# Clone SentientHome deployment repo
-
-log "Creating SentientHome dir: $SENTIENTHOME_PREFIX/SentientHome ..."
+# Install SentientHome deployment repo
 mkdir -p "$SENTIENTHOME_PREFIX"/SentientHome &>$OPT_OUTPUT
 pushd &>$OPT_OUTPUT
 cd "$SENTIENTHOME_PREFIX"/SentientHome
 
-git status
+git status &>$OPT_OUTPUT
 if [ $? -eq 0 ]; then
   log "SentientHome already installed - Updating ..."
-  git pull
+  git pull &>$OPT_OUTPUT
 else
-  git clone "$SENTIENTHOME_REPO" "$SENTIENTHOME_PREFIX"/SentientHome
+  log "Installing SentientHome ..."
+  git clone "$SENTIENTHOME_REPO" "$SENTIENTHOME_PREFIX"/SentientHome &>$OPT_OUTPUT
 fi
 
 EXITCODE=$?
 popd &>$OPT_OUTPUT
 
 if [ $EXITCODE -ne 0 ]; then
-  log "👎  Fatal error cloning SentientHome."
+  log "👎  Fatal error installing SentientHome."
   exit 3
 fi
 

@@ -64,7 +64,7 @@ header()
   log "Processor:      " `uname -p`
   log "Platform:       " `uname -i`
   log
-  log "apt:            " `apt show expect|grep Version:` 2>$OPT_OUTPUT
+  log "apt-get:        " `apt-get --version`
   log "git:            " `git --version`
   log "parted:         " `parted --version`
   log "pip:            " `pip --version`

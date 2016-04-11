@@ -118,7 +118,7 @@ fi
 EXITCODE=$?
 popd &>$OPT_OUTPUT
 
-if [ $? -ne 0 ]; then
+if [ $EXITCODE -ne 0 ]; then
   log "👎  Fatal error cloning SentientHome."
   exit 3
 fi

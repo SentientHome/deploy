@@ -68,7 +68,7 @@ header()
   log "git:            " `git --version`
   log "parted:         " `parted --version`
   log "pip:            " `pip --version`
-  log "python:         " `python --version`
+  log "python:         " $( python --version 2>&1 )
   log
 }
 

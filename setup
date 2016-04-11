@@ -10,7 +10,7 @@ exec &> >(tee -a $LOGFILE)
 ( cd /tmp && rm -f $(ls -1t $LOGDIR/`basename $0`* | tail -n +10) )
 
 SENTIENTHOME_PREFIX='/usr/local'
-SENTIENTHOME='https://github.com/SentientHome/SentientHome'
+SENTIENTHOME_REPO='https://github.com/SentientHome/SentientHome'
 
 # Default settings
 DEBUG=0

@@ -9,10 +9,13 @@ LOGFILE="$LOGDIR/`basename $0`.`date +%Y%m%d%H%M%S`.log"
 exec &> >(tee -a $LOGFILE)
 ( cd /tmp && rm -f $(ls -1t $LOGDIR/`basename $0`* | tail -n +10) )
 
+SENTIENTHOME_PREFIX='/usr/local'
+
 # Default settings
 DEBUG=0
 FORCE=0
 REBOOT=0
+TARGETPATH=/usr/local/bin/
 
 # As we are working with sym links we also need to know the real path to here
 REALPATH=`realpath ${BASH_SOURCE[0]}`
@@ -157,10 +160,9 @@ log "Upgrading all packages ..."
 _aptget upgrade
 
 # Re-link all tool in case there ar new ones after the update
-TARGETPATH=/usr/local/bin/
 log "Re-Linking SentientHome tools to $TARGETPATH ..."
 
-for file in $(find /root/shDeploy/Linux -executable -type f); do
+for file in $(find "$SENTIENTHOME_PREFIX"/SentientHome/Linux -executable -type f); do
   _linktool $file $TARGETPATH
 done
 

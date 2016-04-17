@@ -137,9 +137,14 @@ else
 fi
 
 # Update Sentient Home
-log "Before Update Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
+
+log "Current SentientHome Deploy Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
+( cd $REALDIR && git fetch --dry-run )
+
+# TODO: Add logic to check if we need to do the pull
+
 ( cd $REALDIR && git pull )
-log "After Update Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
+log "New SentientHome Deploy Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
 
 # Update RPI
 log "Checking for Raspberry firmware update ..."

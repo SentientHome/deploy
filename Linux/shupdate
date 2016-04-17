@@ -140,10 +140,9 @@ fi
 
 log "Current SentientHome Deploy Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
 # Check if update is required
-UPDATE=`( cd $REALDIR && git fetch --dry-run|grep From )`
-if [ -n $UPDATE ]; then
-  # TODO: Add logic to check if we need to do the pull
-  log $UPDATE
+DOUPDATE=`( cd $REALDIR && git fetch --dry-run|grep From )`
+if [ -n $DOUPDATE ]; then
+  log $DOUPDATE
   ( cd $REALDIR && git pull )
   log "New SentientHome Deploy Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
 fi

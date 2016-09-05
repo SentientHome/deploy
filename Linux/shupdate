@@ -9,10 +9,13 @@ LOGFILE="$LOGDIR/`basename $0`.`date +%Y%m%d%H%M%S`.log"
 exec &> >(tee -a $LOGFILE)
 ( cd /tmp && rm -f $(ls -1t $LOGDIR/`basename $0`* | tail -n +10) )
 
+SENTIENTHOME_PREFIX='/usr/local'
+
 # Default settings
 DEBUG=0
 FORCE=0
 REBOOT=0
+TARGETPATH=/usr/local/bin/
 
 # As we are working with sym links we also need to know the real path to here
 REALPATH=`realpath ${BASH_SOURCE[0]}`
@@ -45,6 +48,9 @@ header()
 {
   log SentientHome
   log
+  log "Version:        " "$( cd $REALDIR && git describe --tags --always HEAD )"
+  log "Dirty Files:    " "$( cd $REALDIR && git status --porcelain )"
+  log
   log "Module:         " $THIS
   log "Path:           " "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   log "Realpath:       " $REALDIR
@@ -58,10 +64,11 @@ header()
   log "Processor:      " `uname -p`
   log "Platform:       " `uname -i`
   log
-  log "git Version:    " `git --version`
-  log
-  log "git Revision:   " "$( cd $REALDIR && git describe --tags --always HEAD )"
-  log "git Dirty:      " "$( cd $REALDIR && git status --porcelain )"
+  log "apt-get:        " `apt-get --version`
+  log "git:            " `git --version`
+  log "parted:         " `parted --version`
+  log "pip:            " `pip --version`
+  log "python:         " $( python --version 2>&1 )
   log
 }
 
@@ -129,10 +136,16 @@ else
   OPT_OUTPUT="/dev/null"
 fi
 
-# Update Sentient Home
-log "Before Update Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
-( cd $REALDIR && git pull )
-log "After Update Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
+# Update Sentient Home Deploy repo
+
+log "Current SentientHome Deploy Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
+# Check if update is required
+DOUPDATE=`( cd $REALDIR && git fetch --dry-run|grep From )`
+if [ -n $DOUPDATE ]; then
+  log $DOUPDATE
+  ( cd $REALDIR && git pull )
+  log "New SentientHome Deploy Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
+fi
 
 # Update RPI
 log "Checking for Raspberry firmware update ..."
@@ -157,10 +170,9 @@ log "Upgrading all packages ..."
 _aptget upgrade
 
 # Re-link all tool in case there ar new ones after the update
-TARGETPATH=/usr/local/bin/
 log "Re-Linking SentientHome tools to $TARGETPATH ..."
 
-for file in $(find /root/shDeploy/Linux -executable -type f); do
+for file in $(find "$SENTIENTHOME_PREFIX"/SentientHome/Linux -executable -type f); do
   _linktool $file $TARGETPATH
 done
 

@@ -44,6 +44,9 @@ header()
 {
   log SentientHome
   log
+  log "Version:        " "$( cd $REALDIR && git describe --tags --always HEAD )"
+  log "Dirty Files:    " "$( cd $REALDIR && git status --porcelain )"
+  log
   log "Module:         " $THIS
   log "Path:           " "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   log "Realpath:       " $REALDIR
@@ -57,10 +60,11 @@ header()
   log "Processor:      " `uname -p`
   log "Platform:       " `uname -i`
   log
-  log "git Version:    " `git --version`
-  log
-  log "git Revision:   " "$( cd $REALDIR && git describe --tags --always HEAD )"
-  log "git Dirty:      " "$( cd $REALDIR && git status --porcelain )"
+  log "apt-get:        " `apt-get --version`
+  log "git:            " `git --version`
+  log "parted:         " `parted --version`
+  log "pip:            " `pip --version`
+  log "python:         " $( python --version 2>&1 )
   log
 }
 

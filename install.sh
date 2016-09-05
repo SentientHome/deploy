@@ -57,7 +57,8 @@ header()
   log "Processor:      " `uname -p`
   log "Platform:       " `uname -i`
   log
-  log "git Version:    " `git --version`
+  log "git:            " `git --version`
+  log "python:         " $( python --version 2>&1 )
   log
 }
 

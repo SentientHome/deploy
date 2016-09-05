@@ -136,10 +136,16 @@ else
   OPT_OUTPUT="/dev/null"
 fi
 
-# Update Sentient Home
-log "Before Update Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
-( cd $REALDIR && git pull )
-log "After Update Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
+# Update Sentient Home Deploy repo
+
+log "Current SentientHome Deploy Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
+# Check if update is required
+DOUPDATE=`( cd $REALDIR && git fetch --dry-run|grep From )`
+if [ -n $DOUPDATE ]; then
+  log $DOUPDATE
+  ( cd $REALDIR && git pull )
+  log "New SentientHome Deploy Revision: " "$( cd $REALDIR && git describe --tags --always HEAD )"
+fi
 
 # Update RPI
 log "Checking for Raspberry firmware update ..."

@@ -9,7 +9,7 @@ Take a look at a recommended [Sample Configuration](https://github.com/SentientH
 Follow the description to [Install a master based on the Hypriot distribution](https://github.com/SentientHome/deploy/blob/master/HYPRIOT.md)
 
 Once you have installed you master host simple run the following command as
-`root` on the master:
+`pirate` on the master:
 
 ```
 curl -fsSL https://raw.githubusercontent.com/SentientHome/deploy/master/install | bash

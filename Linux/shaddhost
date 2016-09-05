@@ -65,7 +65,7 @@ header()
   log "git:            " `git --version`
   log "parted:         " `parted --version`
   log "pip:            " `pip --version`
-  log "python:         " `python --version`
+  log "python:         " $( python --version 2>&1 )
   log
 }
 
@@ -167,7 +167,7 @@ elif [ $? -eq 2 ]; then
   exit 2
 fi
 
-if [ -n $NEW_PASSWD ]; then
+if [ ! -z $NEW_PASSWD ]; then
   log "Changeing password for root@${HOST_IP} ..."
 ssh root@$HOST_IP passwd &>$OPT_OUTPUT << EOF
 $NEW_PASSWD

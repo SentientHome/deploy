@@ -1,4 +1,4 @@
-# Setting up a new Rapberry PI using Hypriot OS
+# Setting up a new Raspberry PI using Hypriot OS
 
 As we are going to base most of the Home's setup on docker we have chose the
 most optimized PI OS for docker: Hypriot OS. It is also extremely easy to setup
@@ -8,7 +8,7 @@ from a Mac.
 
     Look up the latest available image: [Hypriot OS Downloads](http://blog.hypriot.com/downloads/)
     As of this writing that is:
-    `https://downloads.hypriot.com/hypriot-rpi-20160306-192317.img.zip`
+    `https://downloads.hypriot.com/hypriotos-rpi-v1.0.0.img.zip`
 
     With that we are going to flash a new SD Card using the
     [Hypriot flash utility](https://github.com/hypriot/flash)
@@ -17,7 +17,7 @@ from a Mac.
     running a second instance for redundancy as `master`)
 
     ```bash
-    flash --hostname master https://downloads.hypriot.com/hypriot-rpi-20160306-192317.img.zip
+    flash --hostname master https://downloads.hypriot.com/hypriotos-rpi-v1.0.0.img.zip
     ```
 
     Note: The host name will be different for the various types of nodes you
@@ -27,7 +27,7 @@ from a Mac.
     Follow the instructions of the flash utility and within a few minutes the
     raw boot image is ready.
 
-    Depending on your setup you migth want to prepare addirional hosts for the
+    Depending on your setup you might want to prepare additional hosts for the
     entire SentientHome cluster:
 
     ```bash
@@ -65,10 +65,10 @@ from a Mac.
 
     ```bash
     ssh-keygen -R $PI_IP
-    ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no root@$PI_IP
+    ssh-copy-id -oStrictHostKeyChecking=no -oCheckHostIP=no pirate@$PI_IP
     ```
 
-    Note: The base image will come up with root password `hypriot`
+    Note: The base image will come up with user `pirate` and password `hypriot`
 
 5.  Change the root password
 
@@ -76,7 +76,7 @@ from a Mac.
     put this off until later. Once on the network your device is vulnerable.__
 
     ```bash
-    ssh root@$PI_IP passwd
+    ssh pirate@$PI_IP passwd
     ```
 
 Note: IN some cases you might have to refresh you Mac's local DNS cache in order

@@ -12,7 +12,7 @@ Once you have installed you master host simple run the following command as
 `pirate` on the master:
 
 ```
-curl -fsSL https://raw.githubusercontent.com/SentientHome/deploy/master/install | bash
+curl -fsSL https://raw.githubusercontent.com/SentientHome/deploy/master/install | sudo bash
 ```
 
 This will install the main SentientHome deployment package. It will allow you to

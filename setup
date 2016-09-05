@@ -139,7 +139,7 @@ else
 fi
 
 # Install additional packages
-_aptget install python-dev
+_aptget install python
 _aptget install python-pip
 _aptget install expect
 _aptget install ansible
